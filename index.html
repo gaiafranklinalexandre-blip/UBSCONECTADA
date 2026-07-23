@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UBS Conectadas</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:        #1351B4;
+  --blue-hover:  #2670E8;
+  --blue-light:  #D4E3FF;
+  --blue-bg:     #EEF2FB;
+  --green:       #168821;
+  --green-light: #E3F5E1;
+  --red:         #E52207;
+  --red-light:   #FFE8E5;
+  --yellow:      #FFCD07;
+  --yellow-light:#FFF5C2;
+  --gray-bg:     #F0F0F5;
+  --gray-border: #E0E0E0;
+  --text:        #1C1C1C;
+  --text-mid:    #666;
+  --white:       #fff;
+  --radius:      50px;
+  --card-r:      12px;
+  --shadow:      0 2px 12px rgba(0,0,0,0.07);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(--text); font-size: 14px; }
+
+/* Header */
+.header { position: sticky; top: 0; z-index: 100; background: var(--white); box-shadow: var(--shadow); }
+.header-inner {
+  max-width: 1200px; margin: 0 auto; padding: 16px 28px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.header-title { font-size: 19px; font-weight: 800; color: var(--blue); }
+.header-sub { font-size: 12px; color: var(--text-mid); margin-top: 2px; }
+.header-att { font-size: 11px; color: var(--text-mid); text-align: right; }
+
+/* Filtros */
+.filtros { background: var(--gray-bg); border-bottom: 1px solid var(--gray-border); padding: 10px 28px; }
+.filtros-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filtros-label { font-size: 11px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+.filtros select, .filtros input {
+  border: 1px solid var(--gray-border); border-radius: var(--radius);
+  padding: 7px 28px 7px 12px; font-size: 12px; font-family: inherit;
+  color: var(--text); background: var(--white); cursor: pointer;
+}
+.filtros select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%231351B4' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center;
+}
+.filtros input[type=text] { cursor: text; padding: 7px 12px; }
+.filtros select:focus, .filtros input:focus { outline: 2px solid var(--blue); }
+.filtros-limpar {
+  font-size: 12px; color: var(--blue); font-weight: 600; font-family: inherit;
+  background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: none;
+}
+.filtros-limpar:hover { background: var(--blue-bg); }
+.filtros-ativas { font-size: 11px; color: var(--blue); font-weight: 700; }
+
+/* Busca de município (lista suspensa pesquisável) */
+.busca-wrap { position: relative; }
+#fMunicipio {
+  width: 200px; padding-right: 26px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%231351B4' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center;
+}
+.sugestoes {
+  position: absolute; background: var(--white); border: 1px solid var(--gray-border);
+  border-radius: 10px; box-shadow: var(--shadow); max-height: 280px; overflow-y: auto;
+  z-index: 200; width: 280px; top: calc(100% + 4px); left: 0;
+}
+.sug-item { padding: 9px 14px; cursor: pointer; font-size: 12.5px; border-bottom: 1px solid var(--gray-border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.sug-item:last-child { border-bottom: none; }
+.sug-item:hover { background: var(--blue-bg); }
+.sug-nome { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sug-nome strong { color: var(--blue); font-weight: 700; }
+.sug-uf { font-size: 10px; color: var(--text-mid); background: var(--gray-bg); padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+.sug-vazio { padding: 12px 14px; font-size: 12.5px; color: var(--text-mid); cursor: default; }
+
+/* Body / layout */
+.dash-body { max-width: 1200px; margin: 0 auto; padding: 24px 28px 60px; }
+.secao-titulo { font-size: 15px; font-weight: 800; color: var(--text); margin: 32px 0 14px; display: flex; align-items: center; gap: 8px; }
+.secao-sub { font-size: 12px; font-weight: 500; color: var(--text-mid); margin-top: -8px; margin-bottom: 14px; }
+
+/* KPI cards */
+.dash-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 8px; }
+.dash-kpi { background: var(--white); border-radius: var(--card-r); box-shadow: var(--shadow); padding: 20px 22px; border-top: 4px solid var(--blue); position: relative; overflow: hidden; }
+.dash-kpi.verde   { border-top-color: var(--green); }
+.dash-kpi.amarelo { border-top-color: var(--yellow); }
+.dash-kpi.vermelho{ border-top-color: var(--red); }
+.dash-kpi.roxo    { border-top-color: #6c3fc5; }
+.dash-kpi-label { font-size: 11px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.dash-kpi-valor { font-size: 32px; font-weight: 800; color: var(--blue); line-height: 1; }
+.dash-kpi.verde    .dash-kpi-valor { color: var(--green); }
+.dash-kpi.amarelo  .dash-kpi-valor { color: #7a5f00; }
+.dash-kpi.vermelho .dash-kpi-valor { color: var(--red); }
+.dash-kpi.roxo     .dash-kpi-valor { color: #6c3fc5; }
+.dash-kpi-pct { display: inline-block; font-size: 12px; font-weight: 700; background: var(--blue-light); color: var(--blue); border-radius: 10px; padding: 2px 8px; margin-top: 6px; }
+.dash-kpi.verde    .dash-kpi-pct { background: var(--green-light); color: var(--green); }
+.dash-kpi.amarelo  .dash-kpi-pct { background: var(--yellow-light); color: #7a5f00; }
+.dash-kpi.vermelho .dash-kpi-pct { background: var(--red-light); color: var(--red); }
+.dash-kpi.roxo     .dash-kpi-pct { background: #ede7f6; color: #6c3fc5; }
+.dash-kpi-sub { font-size: 11.5px; color: var(--text-mid); margin-top: 8px; line-height: 1.5; }
+.dash-kpi-bg-ico { position: absolute; right: 14px; bottom: 8px; font-size: 42px; opacity: .07; pointer-events: none; line-height: 1; }
+
+/* Observação */
+.obs-box {
+  background: var(--yellow-light); border: 1px solid var(--yellow); border-radius: var(--card-r);
+  padding: 14px 18px; font-size: 12.5px; color: #5c4600; margin-top: 18px; display: flex; gap: 10px; align-items: flex-start;
+}
+.obs-box b { color: #4a3800; }
+
+/* Chart / table cards */
+.dash-chart-card { background: var(--white); border-radius: var(--card-r); box-shadow: var(--shadow); padding: 20px 22px; margin-bottom: 20px; }
+.dash-chart-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.dash-chart-sub { font-size: 11px; color: var(--text-mid); margin-bottom: 14px; }
+
+/* Tabela */
+.dash-ranking { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.dash-ranking th { font-size: 10px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .5px; text-align: left; padding: 6px 8px; border-bottom: 2px solid var(--gray-border); }
+.dash-ranking td { padding: 8px 8px; border-bottom: 1px solid var(--gray-border); font-size: 12.5px; }
+.dash-ranking tr:last-child td { border-bottom: none; }
+
+/* Farol / badges */
+.farol { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--radius); font-size: 11.5px; font-weight: 700; }
+.farol-verde    { background: var(--green-light); color: var(--green); }
+.farol-amarelo  { background: var(--yellow-light); color: #7a5f00; }
+.farol-vermelho { background: var(--red-light); color: var(--red); }
+
+/* Buttons */
+.btn-outline {
+  border: 1px solid var(--blue); color: var(--blue); background: var(--white);
+  font-family: inherit; font-size: 12.5px; font-weight: 700; padding: 8px 16px;
+  border-radius: var(--radius); cursor: pointer;
+}
+.btn-outline:hover { background: var(--blue-bg); }
+.btn-download {
+  background: var(--blue); color: var(--white); border: none; font-family: inherit;
+  font-size: 12.5px; font-weight: 700; padding: 9px 18px; border-radius: var(--radius); cursor: pointer;
+}
+.btn-download:hover { background: var(--blue-hover); }
+.btn-download.vermelho { background: var(--red); }
+.btn-download.vermelho:hover { background: #c41d06; }
+.btn-download:disabled { opacity: .5; cursor: not-allowed; }
+
+.prioritarios-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.checkbox-linha { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-mid); }
+
+.paginacao { display: flex; justify-content: center; margin-top: 14px; }
+
+.vazio { text-align: center; padding: 40px 20px; color: var(--text-mid); }
+.vazio .ico { font-size: 36px; margin-bottom: 10px; }
+.vazio h3 { font-size: 14px; color: var(--text); margin-bottom: 6px; }
+.vazio p { font-size: 12.5px; }
+
+/* Loading */
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(255,255,255,.85); z-index: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+}
+.spinner { width: 40px; height: 40px; border: 4px solid var(--blue-light); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 700px) {
+  .dash-kpi-valor { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="font-weight:600;color:var(--blue)">Carregando dados...</div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">UBS Conectadas</div>
+      <div class="header-sub">Monitoramento de adesão ao FUST — Conectividade de Unidades de Saúde</div>
+    </div>
+    <div class="header-att" id="headerAtt"></div>
+  </div>
+  <div class="filtros" id="filtros">
+    <div class="filtros-inner">
+      <span class="filtros-label">Filtrar:</span>
+      <select id="fUF" onchange="onUfChange()"><option value="">Todas as UFs</option></select>
+      <div class="busca-wrap">
+        <input type="text" id="fMunicipio" placeholder="Todos os municípios" autocomplete="off"
+          oninput="onMunicipioInput()" onfocus="onMunicipioInput()" onkeydown="onMunicipioKey(event)">
+        <div class="sugestoes" id="municipioSugestoes" style="display:none"></div>
+      </div>
+      <button class="filtros-limpar" id="btnLimpar" onclick="limparFiltros()">✕ Limpar filtros</button>
+    </div>
+  </div>
+</div>
+
+<div class="dash-body" id="dashBody">
+
+  <div class="secao-titulo">📋 Resumo geral</div>
+  <div class="secao-sub">Universo elegível do edital preliminar do FUST (Novo PAC Conectividade de Unidades de Saúde).</div>
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi">
+      <div class="dash-kpi-label">Municípios elegíveis</div>
+      <div class="dash-kpi-valor" id="kpiMunicipiosTotal">—</div>
+      <div class="dash-kpi-sub">no edital preliminar do FUST</div>
+      <div class="dash-kpi-bg-ico">🏛️</div>
+    </div>
+    <div class="dash-kpi roxo">
+      <div class="dash-kpi-label">UBS no resultado provisório</div>
+      <div class="dash-kpi-valor" id="kpiUbsTotal">—</div>
+      <div class="dash-kpi-sub">estabelecimentos elegíveis à conectividade</div>
+      <div class="dash-kpi-bg-ico">🏥</div>
+    </div>
+    <div class="dash-kpi verde">
+      <div class="dash-kpi-label">UBS com empresa vencedora</div>
+      <div class="dash-kpi-valor" id="kpiUbsComVenc">—</div>
+      <div class="dash-kpi-pct" id="kpiUbsComVencPct">—%</div>
+      <div class="dash-kpi-bg-ico">✅</div>
+    </div>
+    <div class="dash-kpi vermelho">
+      <div class="dash-kpi-label">UBS sem empresa vencedora</div>
+      <div class="dash-kpi-valor" id="kpiUbsSemVenc">—</div>
+      <div class="dash-kpi-sub">ainda sem empresa manifestando interesse</div>
+      <div class="dash-kpi-bg-ico">⚠️</div>
+    </div>
+  </div>
+
+  <div class="secao-titulo">✅ Adesão</div>
+  <div class="secao-sub">Municípios elegíveis que já manifestaram adesão (Fase I e/ou Fase II).</div>
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi verde">
+      <div class="dash-kpi-label">Municípios aderidos</div>
+      <div class="dash-kpi-valor" id="kpiAdesaoMunicipios">—</div>
+      <div class="dash-kpi-pct" id="kpiAdesaoMunicipiosPct">—%</div>
+      <div class="dash-kpi-sub" id="kpiAdesaoMunicipiosSub">—</div>
+      <div class="dash-kpi-bg-ico">🤝</div>
+    </div>
+    <div class="dash-kpi verde">
+      <div class="dash-kpi-label">UBS com empresa vencedora (nesses municípios)</div>
+      <div class="dash-kpi-valor" id="kpiAdesaoUbsComVenc">—</div>
+      <div class="dash-kpi-pct" id="kpiAdesaoUbsComVencPct">—%</div>
+      <div class="dash-kpi-sub" id="kpiAdesaoUbsComVencSub">—</div>
+      <div class="dash-kpi-bg-ico">📶</div>
+    </div>
+  </div>
+
+  <div class="secao-titulo">⏳ Faltam aderir</div>
+  <div class="secao-sub">Municípios elegíveis que ainda não manifestaram nenhuma adesão.</div>
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi vermelho">
+      <div class="dash-kpi-label">Municípios sem adesão</div>
+      <div class="dash-kpi-valor" id="kpiFaltamMunicipios">—</div>
+      <div class="dash-kpi-pct" id="kpiFaltamMunicipiosPct">—%</div>
+      <div class="dash-kpi-bg-ico">🚫</div>
+    </div>
+    <div class="dash-kpi amarelo">
+      <div class="dash-kpi-label">UBS com empresa vencedora (nesses municípios)</div>
+      <div class="dash-kpi-valor" id="kpiFaltamUbsComVenc">—</div>
+      <div class="dash-kpi-pct" id="kpiFaltamUbsComVencPct">—%</div>
+      <div class="dash-kpi-sub" id="kpiFaltamUbsComVencSub">—</div>
+      <div class="dash-kpi-bg-ico">📡</div>
+    </div>
+  </div>
+
+  <div class="secao-titulo">🔧 Fase II — confirmação técnica</div>
+  <div class="secao-sub">Dos municípios já aderidos: quais concluíram a Fase II (responsável técnico + dados de instalação confirmados) e quais ainda faltam.</div>
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi verde">
+      <div class="dash-kpi-label">Fase II concluída</div>
+      <div class="dash-kpi-valor" id="kpiFase2Completa">—</div>
+      <div class="dash-kpi-pct" id="kpiFase2CompletaPct">—% dos aderidos</div>
+      <div class="dash-kpi-sub" id="kpiFase2CompletaSub">—</div>
+      <div class="dash-kpi-bg-ico">🏁</div>
+    </div>
+    <div class="dash-kpi amarelo">
+      <div class="dash-kpi-label">Fase II pendente (prioritário)</div>
+      <div class="dash-kpi-valor" id="kpiFase2Pendente">—</div>
+      <div class="dash-kpi-pct" id="kpiFase2PendentePct">—% dos aderidos</div>
+      <div class="dash-kpi-sub" id="kpiFase2PendenteSub">—</div>
+      <div class="dash-kpi-bg-ico">📞</div>
+    </div>
+  </div>
+
+  <div class="obs-box" id="obsBox" style="display:none">
+    <span style="font-size:18px">ℹ️</span>
+    <span id="obsTexto"></span>
+  </div>
+
+  <div class="secao-titulo">📞 Contatos prioritários</div>
+  <div class="secao-sub">Municípios que já aderiram (Fase I) mas ainda não concluíram a Fase II — quem precisa ser contatado para finalizar a adesão.</div>
+  <div class="dash-chart-card">
+    <div class="prioritarios-bar">
+      <div style="font-size:12.5px;color:var(--text-mid)">Respeita os filtros de UF/município acima aplicados.</div>
+      <button class="btn-download vermelho" onclick="baixarPrioritariosCSV(event)">⬇ Baixar relatório de contatos prioritários</button>
+    </div>
+  </div>
+
+  <div class="secao-titulo">📑 Detalhamento por UBS</div>
+  <div class="secao-sub">Lista de estabelecimentos do resultado provisório, com a situação de adesão do respectivo município.</div>
+  <div class="dash-chart-card">
+    <div class="dash-chart-title">
+      <span>Estabelecimentos</span>
+      <button class="btn-download" onclick="baixarDetalheCSV()">⬇ Baixar CSV (página atual)</button>
+    </div>
+    <div class="checkbox-linha" style="margin-bottom:10px">
+      <input type="checkbox" id="fApenasComVenc" onchange="onFiltroChange()">
+      <label for="fApenasComVenc">Somente UBS com empresa vencedora</label>
+    </div>
+    <table class="dash-ranking" id="tabelaDetalhe"></table>
+    <div id="detalheVazio"></div>
+    <div class="paginacao">
+      <button class="btn-outline" id="btnCarregarMais" onclick="carregarMaisDetalhe()" style="display:none">Carregar mais</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = 'https://darkgoldenrod-pelican-495804.hostingersite.com/sync-fust.php';
+
+let filtroState = { uf: '', municipio: '' };
+let allMunicipios = []; // [{municipio, uf}]
+let detalheOffset = 0;
+const DETALHE_LIMIT = 50;
+window._detalheAcumulado = [];
+
+function normalizar(s) {
+  const semAcento = (s || '').toLowerCase().normalize('NFD').split('').filter(function (c) {
+    const code = c.codePointAt(0);
+    return code < 0x0300 || code > 0x036f;
+  }).join('');
+  return semAcento;
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showLoading(v) { document.getElementById('loadingOverlay').style.display = v ? 'flex' : 'none'; }
+
+function apiUrl(action, params) {
+  const p = new URLSearchParams(params || {});
+  p.set('action', action);
+  return `${API_BASE}?${p.toString()}`;
+}
+
+// fetch() só rejeita em falha de rede — HTTP 500 ou HTML de erro do PHP são tratados
+// como sucesso e quebram no r.json(). fetchJson cobre os três casos com uma mensagem
+// que dá para diagnosticar (endpoint, status, corpo).
+async function fetchJson(url) {
+  let resp;
+  try {
+    resp = await fetch(url);
+  } catch (e) {
+    throw new Error(`Falha de rede ao chamar ${url.split('?')[0]} — ${e.message}`);
+  }
+  if (!resp.ok) {
+    const corpo = (await resp.text().catch(() => '')).slice(0, 200);
+    throw new Error(`API respondeu HTTP ${resp.status} (${resp.statusText}) em ${url.split('?')[0]}${corpo ? ' — ' + corpo : ''}`);
+  }
+  try {
+    return await resp.json();
+  } catch (e) {
+    throw new Error(`Resposta não é um JSON válido em ${url.split('?')[0]}`);
+  }
+}
+
+function mostrarErroApi(e) {
+  console.error(e);
+  let toast = document.getElementById('apiErroToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'apiErroToast';
+    toast.style.cssText = 'position:fixed;bottom:16px;right:16px;max-width:360px;'
+      + 'background:var(--red-light);border:1px solid var(--red);color:var(--red);'
+      + 'padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);font-size:12px;'
+      + 'line-height:1.5;z-index:999;';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<strong>⚠️ Falha ao atualizar dados</strong><br>${escapeAttr((e && e.message) || String(e))}`;
+  toast.style.display = 'block';
+  clearTimeout(mostrarErroApi._t);
+  mostrarErroApi._t = setTimeout(() => { toast.style.display = 'none'; }, 15000);
+}
+
+function filtroParams(extra) {
+  const p = {};
+  if (filtroState.uf) p.uf = filtroState.uf;
+  if (filtroState.municipio) p.municipio = filtroState.municipio;
+  return Object.assign(p, extra || {});
+}
+
+function fmtNum(n) { return (n || 0).toLocaleString('pt-BR'); }
+function fmtData(d) {
+  if (!d) return '—';
+  const [y, m, dia] = d.split('-');
+  return `${dia}/${m}/${y}`;
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+async function init() {
+  showLoading(true);
+  try {
+    const filtros = await fetchJson(apiUrl('filtros'));
+
+    const selUF = document.getElementById('fUF');
+    filtros.ufs.forEach(uf => {
+      const opt = document.createElement('option');
+      opt.value = uf; opt.textContent = uf;
+      selUF.appendChild(opt);
+    });
+
+    allMunicipios = await fetchJson(apiUrl('municipios'));
+    allMunicipios.sort((a, b) => (a.municipio || '').localeCompare(b.municipio || '', 'pt-BR'));
+
+    await carregarTudo();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('dashBody').innerHTML = `
+      <div class="vazio"><div class="ico">⚠️</div><h3>Não foi possível carregar os dados</h3>
+      <p>Verifique a conexão com a API ou tente novamente em instantes.</p>
+      <p style="margin-top:10px;font-size:11px;color:var(--text-mid);font-family:monospace;word-break:break-all">${escapeAttr((e && e.message) || String(e))}</p>
+      </div>`;
+  }
+  showLoading(false);
+}
+
+function onUfChange() {
+  filtroState.uf = document.getElementById('fUF').value;
+  filtroState.municipio = '';
+  document.getElementById('fMunicipio').value = '';
+  onFiltroChange();
+}
+
+const MUNICIPIO_LIMITE = 200;
+
+function onMunicipioInput() {
+  const termo = normalizar(document.getElementById('fMunicipio').value.trim());
+  const box = document.getElementById('municipioSugestoes');
+
+  let candidatos = allMunicipios;
+  if (filtroState.uf) candidatos = candidatos.filter(m => m.uf === filtroState.uf);
+
+  const matches = termo
+    ? candidatos.filter(m => normalizar(m.municipio).includes(termo))
+    : candidatos;
+
+  if (!matches.length) {
+    box.innerHTML = '<div class="sug-vazio">Nenhum município encontrado</div>';
+    box.style.display = 'block';
+    return;
+  }
+
+  const excedente = matches.length - MUNICIPIO_LIMITE;
+  box.innerHTML = matches.slice(0, MUNICIPIO_LIMITE).map(m => {
+    const nome = m.municipio;
+    const idx = termo ? normalizar(nome).indexOf(termo) : -1;
+    const destaque = idx >= 0
+      ? nome.slice(0, idx) + '<strong>' + nome.slice(idx, idx + termo.length) + '</strong>' + nome.slice(idx + termo.length)
+      : nome;
+    const nomeAttr = escapeAttr(nome);
+    return `<div class="sug-item" data-nome="${nomeAttr}" data-uf="${m.uf}">
+      <span class="sug-nome">${destaque}</span><span class="sug-uf">${m.uf}</span>
+    </div>`;
+  }).join('') + (excedente > 0 ? `<div class="sug-vazio">+${excedente} município(s) — digite para refinar a busca</div>` : '');
+  box.style.display = 'block';
+}
+
+function onMunicipioKey(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const box = document.getElementById('municipioSugestoes');
+  const first = box.querySelector('.sug-item[data-nome]');
+  if (first) selecionarMunicipio(first.dataset.nome, first.dataset.uf);
+}
+
+function selecionarMunicipio(nome, uf) {
+  document.getElementById('fMunicipio').value = nome;
+  document.getElementById('municipioSugestoes').style.display = 'none';
+  document.getElementById('fUF').value = uf;
+  filtroState.uf = uf;
+  filtroState.municipio = nome;
+  onFiltroChange();
+}
+
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.sug-item[data-nome]');
+  if (item) {
+    selecionarMunicipio(item.dataset.nome, item.dataset.uf);
+    return;
+  }
+  if (!e.target.closest('.busca-wrap')) {
+    const box = document.getElementById('municipioSugestoes');
+    if (box) box.style.display = 'none';
+  }
+});
+
+function atualizarFiltrosAtivos() {
+  const btn = document.getElementById('btnLimpar');
+  btn.style.display = (filtroState.uf || filtroState.municipio) ? 'inline-block' : 'none';
+}
+
+function limparFiltros() {
+  filtroState = { uf: '', municipio: '' };
+  document.getElementById('fUF').value = '';
+  document.getElementById('fMunicipio').value = '';
+  document.getElementById('fApenasComVenc').checked = false;
+  onFiltroChange();
+}
+
+function onFiltroChange() {
+  atualizarFiltrosAtivos();
+  detalheOffset = 0;
+  carregarTudo();
+}
+
+async function carregarTudo() {
+  showLoading(true);
+  detalheOffset = 0;
+  try {
+    await Promise.all([
+      carregarStats(),
+      carregarDetalhe(false),
+    ]);
+  } catch (e) {
+    mostrarErroApi(e);
+  }
+  showLoading(false);
+}
+
+// ---------------------------------------------------------------------------
+// KPIs
+// ---------------------------------------------------------------------------
+async function carregarStats() {
+  const stats = await fetchJson(apiUrl('stats', filtroParams()));
+
+  document.getElementById('kpiMunicipiosTotal').textContent = fmtNum(stats.resumo_geral.municipios);
+  document.getElementById('kpiUbsTotal').textContent = fmtNum(stats.resumo_geral.ubs_total);
+  document.getElementById('kpiUbsComVenc').textContent = fmtNum(stats.resumo_geral.ubs_com_venc);
+  document.getElementById('kpiUbsComVencPct').textContent =
+    (stats.resumo_geral.ubs_total > 0 ? Math.round(1000 * stats.resumo_geral.ubs_com_venc / stats.resumo_geral.ubs_total) / 10 : 0) + '%';
+  document.getElementById('kpiUbsSemVenc').textContent = fmtNum(stats.resumo_geral.ubs_sem_venc);
+
+  const a = stats.adesao;
+  document.getElementById('kpiAdesaoMunicipios').textContent = fmtNum(a.municipios);
+  document.getElementById('kpiAdesaoMunicipiosPct').textContent = a.municipios_pct + '%';
+  document.getElementById('kpiAdesaoMunicipiosSub').textContent =
+    `Faltam ${fmtNum(stats.faltam_aderir.municipios)} município(s) aderir.`;
+  document.getElementById('kpiAdesaoUbsComVenc').textContent = fmtNum(a.ubs_com_venc);
+  document.getElementById('kpiAdesaoUbsComVencPct').textContent = a.ubs_com_venc_pct + '%';
+  document.getElementById('kpiAdesaoUbsComVencSub').textContent =
+    `Nesses mesmos municípios ainda há ${fmtNum(a.ubs_sem_venc)} UBS sem empresa vencedora.`;
+
+  const f = stats.faltam_aderir;
+  document.getElementById('kpiFaltamMunicipios').textContent = fmtNum(f.municipios);
+  document.getElementById('kpiFaltamMunicipiosPct').textContent = f.municipios_pct + '%';
+  document.getElementById('kpiFaltamUbsComVenc').textContent = fmtNum(f.ubs_com_venc);
+  document.getElementById('kpiFaltamUbsComVencPct').textContent = f.ubs_com_venc_pct + '%';
+  document.getElementById('kpiFaltamUbsComVencSub').textContent =
+    `Nesses municípios ainda sem adesão há ${fmtNum(f.ubs_sem_venc)} UBS sem empresa vencedora.`;
+
+  const f2 = stats.fase2;
+  document.getElementById('kpiFase2Completa').textContent = fmtNum(f2.completa_municipios);
+  document.getElementById('kpiFase2CompletaPct').textContent = f2.completa_pct + '% dos aderidos';
+  document.getElementById('kpiFase2CompletaSub').textContent =
+    `Correspondem a ${fmtNum(f2.completa_ubs_com_venc)} UBS com empresa vencedora.`;
+  document.getElementById('kpiFase2Pendente').textContent = fmtNum(f2.pendente_municipios);
+  document.getElementById('kpiFase2PendentePct').textContent = f2.pendente_pct + '% dos aderidos';
+  document.getElementById('kpiFase2PendenteSub').textContent =
+    `Correspondem a ${fmtNum(f2.pendente_ubs_com_venc)} UBS com empresa vencedora.`;
+
+  const obsBox = document.getElementById('obsBox');
+  if (stats.obs.municipios_aderidos_nao_elegiveis > 0) {
+    document.getElementById('obsTexto').innerHTML =
+      `<b>${stats.obs.municipios_aderidos_nao_elegiveis} município(s)</b> têm adesão registrada, mas não constam na lista de elegíveis do edital preliminar do FUST (RESULTADO_PROVISORIO_DADOS).`;
+    obsBox.style.display = 'flex';
+  } else {
+    obsBox.style.display = 'none';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Contatos prioritários (download)
+// ---------------------------------------------------------------------------
+async function baixarPrioritariosCSV(event) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try {
+    const lista = await fetchJson(apiUrl('prioritarios', filtroParams()));
+    if (!lista.length) {
+      alert('Nenhum contato prioritário para os filtros atuais.');
+      return;
+    }
+    const headers = ['IBGE', 'UF', 'Município', 'Situação', 'Nº da Solicitação', 'Data da Solicitação', 'UBS total', 'UBS com vencedora', 'UBS sem vencedora'];
+    const rows = lista.map(r => [r.ibge, r.uf, r.municipio, r.situacao, r.numero_solicitacao, fmtData(r.data_solicitacao), r.ubs_total, r.ubs_com_venc, r.ubs_sem_venc]);
+    downloadCSV('contatos_prioritarios_fust', headers, rows);
+  } catch (e) {
+    mostrarErroApi(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⬇ Baixar relatório de contatos prioritários';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Detalhamento por UBS
+// ---------------------------------------------------------------------------
+async function carregarDetalhe(acumular) {
+  const params = filtroParams({ limit: DETALHE_LIMIT, offset: detalheOffset });
+  if (document.getElementById('fApenasComVenc').checked) params.apenas_com_venc = 1;
+  const dados = await fetchJson(apiUrl('data', params));
+
+  window._detalheAcumulado = acumular ? window._detalheAcumulado.concat(dados.registros) : dados.registros;
+
+  const tabela = document.getElementById('tabelaDetalhe');
+  const vazio = document.getElementById('detalheVazio');
+  const listaCompleta = window._detalheAcumulado;
+
+  if (!listaCompleta.length) {
+    tabela.innerHTML = '';
+    vazio.innerHTML = `<div class="vazio"><div class="ico">🔍</div><h3>Sem resultados</h3><p>Nenhum estabelecimento para os filtros atuais.</p></div>`;
+  } else {
+    vazio.innerHTML = '';
+    let html = `<thead><tr>
+      <th>CNES</th><th>Unidade</th><th>UF</th><th>Município</th><th>Tipo</th>
+      <th>Empresa vencedora</th><th>Com vencedora?</th><th>Adesão do município</th>
+    </tr></thead><tbody>`;
+    listaCompleta.forEach(r => {
+      const venc = r.com_emp_venc == 1
+        ? `<span class="farol farol-verde">Sim</span>`
+        : `<span class="farol farol-vermelho">Não</span>`;
+      const situacao = situacaoFarol(r.situacao_adesao);
+      html += `<tr>
+        <td>${r.cnes}</td><td>${r.nome_unidade}</td><td>${r.uf}</td><td>${r.municipio}</td><td>${r.tipo_unidade}</td>
+        <td>${r.empresa_vencedora || '—'}</td><td>${venc}</td><td>${situacao}</td>
+      </tr>`;
+    });
+    html += '</tbody>';
+    tabela.innerHTML = html;
+  }
+
+  document.getElementById('btnCarregarMais').style.display = dados.tem_mais ? 'inline-block' : 'none';
+}
+
+function situacaoFarol(situacao) {
+  if (!situacao) return `<span class="farol farol-vermelho">Não aderiu</span>`;
+  if (situacao === 'SOLICITADA FASE II') return `<span class="farol farol-verde">Fase II concluída</span>`;
+  return `<span class="farol farol-amarelo">Fase II pendente</span>`;
+}
+
+function carregarMaisDetalhe() {
+  detalheOffset += DETALHE_LIMIT;
+  carregarDetalhe(true);
+}
+
+function baixarDetalheCSV() {
+  const lista = window._detalheAcumulado || [];
+  if (!lista.length) return;
+  const headers = ['CNES', 'Unidade', 'UF', 'Município', 'Tipo', 'Empresa vencedora', 'Com vencedora', 'Adesão do município'];
+  const rows = lista.map(r => [r.cnes, r.nome_unidade, r.uf, r.municipio, r.tipo_unidade, r.empresa_vencedora, r.com_emp_venc ? 'Sim' : 'Não', r.situacao_adesao || 'Não aderiu']);
+  downloadCSV('detalhamento_ubs_conectadas', headers, rows);
+}
+
+function downloadCSV(nomeBase, headers, rows) {
+  const csv = [headers, ...rows]
+    .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `${nomeBase}_${filtroState.municipio || filtroState.uf || 'geral'}.csv`;
+  a.click();
+}
+
+init();
+</script>
+</body>
+</html>
