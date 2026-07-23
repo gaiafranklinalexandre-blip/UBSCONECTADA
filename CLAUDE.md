@@ -68,7 +68,17 @@ Toda a lógica de cruzamento é feita **em PHP, em memória**, não em SQL com J
 
 ## Relatório de contatos prioritários (`?action=prioritarios`)
 
-Lista municípios com Fase II pendente (`SOLICITADA` ou `EM PREENCHIMENTO FASE II`) que **também são elegíveis** (existem em `fust_ubs`), com UF, nome, situação, número/data da solicitação e quantidade de UBS com/sem vencedora naquele município — para o gestor priorizar quem contatar para concluir a Fase II. Baixado como CSV pelo botão no painel (`baixarPrioritariosCSV()` em `index.html`), respeitando os filtros de UF/município ativos no momento.
+Lista municípios com Fase II pendente (`SOLICITADA` ou `EM PREENCHIMENTO FASE II`) que **também são elegíveis** (existem em `fust_ubs`), com UF, nome, situação, número/data da solicitação e quantidade de UBS com/sem vencedora naquele município — para o gestor priorizar quem contatar para concluir a Fase II. Baixado como `.xlsx` formatado pelo botão no painel (`baixarPrioritariosXLSX()` em `index.html`, via `downloadXLSX()`), respeitando os filtros de UF/município ativos no momento.
+
+## Downloads em XLSX formatado (não CSV puro)
+
+Os dois botões de download (`baixarPrioritariosXLSX()` e `baixarDetalheXLSX()`) geram `.xlsx` de verdade via **ExcelJS** (CDN, ver "Exceções à regra de vanilla JS" abaixo) — cabeçalho em negrito/azul, 1ª linha congelada, autofiltro, largura de coluna automática e células coloridas (verde/amarelo/vermelho, espelhando o farol do painel) nas colunas de situação. Motivo: CSV puro abre sem nenhuma formatação no Excel e os apoiadores de campo tinham dificuldade de ler a planilha crua (pedido do usuário em 2026-07-23). Função genérica: `downloadXLSX(nomeBase, headers, rows, colColors)`.
+
+## Mapa de adesão (`?action=mapa`)
+
+Um ponto por município elegível (universo de `fust_ubs`, mesmo padrão do `?action=prioritarios`), colorido pela situação: vermelho = não aderiu, amarelo = aderiu com Fase II pendente, verde = Fase II concluída. Renderizado com **Leaflet** (CDN, tiles OpenStreetMap) na função `carregarMapa()`, chamada junto com `carregarStats()`/`carregarDetalhe()` no `Promise.all` de `carregarTudo()` — por isso já respeita os filtros de UF/município ativos.
+
+As coordenadas (lat/lon por IBGE de 6 dígitos) vêm de `municipios_latlon.json` na raiz do repo — asset estático gerado a partir do dataset público [kelvins/municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros) (`codigo_ibge` de 7 dígitos ÷ 10, descartando o dígito verificador, dá o `ibge` de 6 dígitos usado no projeto). Cobre os 5.571 municípios do Brasil, não só os atualmente elegíveis, para não precisar regenerar o arquivo quando a base de elegíveis mudar. Buscado 1x por sessão (`fetch('municipios_latlon.json')`, cacheado em `mapaCoordsCache`) — **atenção**: esse fetch relativo só funciona servido por HTTP (Render, ou um servidor local tipo `python -m http.server`), não abrindo o `index.html` direto via `file://` (CORS bloqueia).
 
 ---
 
@@ -81,13 +91,15 @@ Lista municípios com Fase II pendente (`SOLICITADA` ou `EM PREENCHIMENTO FASE I
 | `RESULTADO_PROVISORIO_DADOS.xlsx` | Raiz local | Base de elegíveis — **gitignored**, atualizada esporadicamente |
 | `SOLICITACOES.xlsx` | Raiz local | Base de adesões — **gitignored**, atualizada todo dia pelo usuário |
 | `index.html` | Raiz do repo | Frontend do painel |
+| `municipios_latlon.json` | Raiz do repo | Coordenadas (lat/lon) por IBGE de 6 dígitos, para o mapa de adesão — versionado (não é dado sensível nem muda) |
 
 ---
 
 ## Regras principais de desenvolvimento
 
 - Não usar frameworks JS — vanilla JS, mesmo padrão do CNES Combo.
-- `sync-fust.php` nunca vai para o GitHub — gitignored, sobe manualmente no Hostinger.
+- **Exceções à regra de vanilla JS**: bibliotecas utilitárias pontuais via CDN são aceitas quando não há alternativa razoável em vanilla JS puro — hoje são **ExcelJS** (gerar `.xlsx` formatado nos downloads) e **Leaflet** (mapa de adesão). Continuam proibidos frameworks de UI (React/Vue/etc.).
+- `sync-fust.php` nunca vai para o GitHub — gitignored, sobe manualmente no Hostinger. **Toda mudança em `sync-fust.php` precisa ser reenviada manualmente para o Hostinger depois do commit local** — o push automático do `index.html`/`CLAUDE.md` não cobre esse arquivo.
 - Não versionar `.xlsx`.
 - Busca de município é lista suspensa pesquisável (autocomplete): mostra a lista completa já ao focar o campo (respeitando a UF selecionada), com busca por texto para refinar — mesmo componente corrigido no CNES Combo em 2026-07-23 (mostrar tudo desde o início, sort defensivo contra campo ausente).
 - Toda chamada à API passa por `fetchJson()` (não `fetch(...).then(r=>r.json())` cru), que captura falha de rede, HTTP não-200 e corpo não-JSON com uma mensagem diagnosticável — lição aprendida no CNES Combo, replicada aqui desde o início.
