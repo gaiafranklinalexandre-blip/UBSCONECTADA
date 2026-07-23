@@ -250,6 +250,13 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
       <div class="dash-kpi-sub" id="kpiAdesaoUbsComVencSub">—</div>
       <div class="dash-kpi-bg-ico">📶</div>
     </div>
+    <div class="dash-kpi vermelho">
+      <div class="dash-kpi-label">🚨 Aderiram sem nenhuma UBS vencedora</div>
+      <div class="dash-kpi-valor" id="kpiAdesaoSemVencedora">—</div>
+      <div class="dash-kpi-pct" id="kpiAdesaoSemVencedoraPct">—% dos aderidos</div>
+      <div class="dash-kpi-sub">Município aderiu, mas nenhum estabelecimento tem empresa manifestando interesse ainda.</div>
+      <div class="dash-kpi-bg-ico">🚨</div>
+    </div>
   </div>
 
   <div class="secao-titulo">⏳ Faltam aderir</div>
@@ -299,7 +306,7 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
   <div class="dash-chart-card">
     <div class="prioritarios-bar">
       <div style="font-size:12.5px;color:var(--text-mid)">Respeita os filtros de UF/município acima aplicados.</div>
-      <button class="btn-download vermelho" onclick="baixarPrioritariosCSV(event)">⬇ Baixar relatório de contatos prioritários</button>
+      <button class="btn-download vermelho" onclick="baixarPrioritariosXLSX(event)">⬇ Baixar relatório de contatos prioritários</button>
     </div>
   </div>
 
@@ -308,7 +315,7 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
   <div class="dash-chart-card">
     <div class="dash-chart-title">
       <span>Estabelecimentos</span>
-      <button class="btn-download" onclick="baixarDetalheCSV()">⬇ Baixar CSV (página atual)</button>
+      <button class="btn-download" onclick="baixarDetalheXLSX()">⬇ Baixar XLSX (página atual)</button>
     </div>
     <div class="checkbox-linha" style="margin-bottom:10px">
       <input type="checkbox" id="fApenasComVenc" onchange="onFiltroChange()">
@@ -323,6 +330,7 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
 const API_BASE = 'https://darkgoldenrod-pelican-495804.hostingersite.com/sync-fust.php';
 
@@ -561,6 +569,8 @@ async function carregarStats() {
   document.getElementById('kpiAdesaoUbsComVencPct').textContent = a.ubs_com_venc_pct + '%';
   document.getElementById('kpiAdesaoUbsComVencSub').textContent =
     `Nesses mesmos municípios ainda há ${fmtNum(a.ubs_sem_venc)} UBS sem empresa vencedora.`;
+  document.getElementById('kpiAdesaoSemVencedora').textContent = fmtNum(a.municipios_sem_vencedora);
+  document.getElementById('kpiAdesaoSemVencedoraPct').textContent = a.municipios_sem_vencedora_pct + '% dos aderidos';
 
   const f = stats.faltam_aderir;
   document.getElementById('kpiFaltamMunicipios').textContent = fmtNum(f.municipios);
@@ -593,7 +603,7 @@ async function carregarStats() {
 // ---------------------------------------------------------------------------
 // Contatos prioritários (download)
 // ---------------------------------------------------------------------------
-async function baixarPrioritariosCSV(event) {
+async function baixarPrioritariosXLSX(event) {
   const btn = event.target;
   btn.disabled = true;
   btn.textContent = 'Gerando...';
@@ -605,7 +615,10 @@ async function baixarPrioritariosCSV(event) {
     }
     const headers = ['IBGE', 'UF', 'Município', 'Situação', 'Nº da Solicitação', 'Data da Solicitação', 'UBS total', 'UBS com vencedora', 'UBS sem vencedora'];
     const rows = lista.map(r => [r.ibge, r.uf, r.municipio, r.situacao, r.numero_solicitacao, fmtData(r.data_solicitacao), r.ubs_total, r.ubs_com_venc, r.ubs_sem_venc]);
-    downloadCSV('contatos_prioritarios_fust', headers, rows);
+    await downloadXLSX('contatos_prioritarios_fust', headers, rows, {
+      3: v => v === 'SOLICITADA FASE II' ? CORES.verde : CORES.amarelo,
+      8: v => Number(v) > 0 ? CORES.vermelho : null,
+    });
   } catch (e) {
     mostrarErroApi(e);
   } finally {
@@ -665,21 +678,54 @@ function carregarMaisDetalhe() {
   carregarDetalhe(true);
 }
 
-function baixarDetalheCSV() {
+async function baixarDetalheXLSX() {
   const lista = window._detalheAcumulado || [];
   if (!lista.length) return;
   const headers = ['CNES', 'Unidade', 'UF', 'Município', 'Tipo', 'Empresa vencedora', 'Com vencedora', 'Adesão do município'];
   const rows = lista.map(r => [r.cnes, r.nome_unidade, r.uf, r.municipio, r.tipo_unidade, r.empresa_vencedora, r.com_emp_venc ? 'Sim' : 'Não', r.situacao_adesao || 'Não aderiu']);
-  downloadCSV('detalhamento_ubs_conectadas', headers, rows);
+  await downloadXLSX('detalhamento_ubs_conectadas', headers, rows, {
+    6: v => v === 'Sim' ? CORES.verde : CORES.vermelho,
+    7: v => v === 'Fase II concluída' ? CORES.verde : v === 'Não aderiu' ? CORES.vermelho : CORES.amarelo,
+  });
 }
 
-function downloadCSV(nomeBase, headers, rows) {
-  const csv = [headers, ...rows]
-    .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\n');
+// ARGB usados para colorir células, espelhando as cores do farol (.farol-verde/-amarelo/-vermelho)
+const CORES = { verde: 'FFE3F5E1', amarelo: 'FFFFF5C2', vermelho: 'FFFFE8E5' };
+
+// Gera um .xlsx real (cabeçalho em negrito/azul, autofiltro, congelar 1ª linha, largura de coluna
+// automática) em vez de CSV puro — CSV não carrega formatação nenhuma quando aberto no Excel.
+// colColors: { indiceDaColuna: valor => corARGB ou null } para colorir células específicas.
+async function downloadXLSX(nomeBase, headers, rows, colColors = {}) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Dados');
+
+  ws.addRow(headers);
+  ws.getRow(1).eachCell(cell => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1351B4' } };
+    cell.alignment = { vertical: 'middle' };
+  });
+  ws.views = [{ state: 'frozen', ySplit: 1 }];
+  ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+
+  rows.forEach(r => {
+    const row = ws.addRow(r);
+    Object.entries(colColors).forEach(([idx, corDe]) => {
+      const argb = corDe(r[idx]);
+      if (argb) row.getCell(Number(idx) + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb } };
+    });
+  });
+
+  ws.columns.forEach((col, i) => {
+    let max = String(headers[i] ?? '').length;
+    rows.forEach(r => { const len = String(r[i] ?? '').length; if (len > max) max = len; });
+    col.width = Math.min(Math.max(max + 2, 10), 45);
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `${nomeBase}_${filtroState.municipio || filtroState.uf || 'geral'}.csv`;
+  a.href = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  a.download = `${nomeBase}_${filtroState.municipio || filtroState.uf || 'geral'}.xlsx`;
   a.click();
 }
 

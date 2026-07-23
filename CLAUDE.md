@@ -61,6 +61,7 @@ Toda a lógica de cruzamento é feita **em PHP, em memória**, não em SQL com J
 
 - **Resumo geral**: todos os municípios/UBS de `fust_ubs`, independente de adesão.
 - **Adesão**: municípios que estão em `fust_ubs` **E** em `fust_solicitacoes` (intersecção por IBGE). Some as UBS com/sem vencedora apenas desses municípios.
+- **Alerta "Aderiram sem nenhuma UBS vencedora"** (`adesao.municipios_sem_vencedora`): dentro do grupo "Adesão", município cujo `com_venc` somado (todas as UBS daquele IBGE) é zero — aderiu, mas nenhum estabelecimento tem empresa manifestando interesse ainda. KPI de alerta (vermelho) no painel, pedido pelo usuário em 2026-07-23 depois de confirmar que existiam ~308/1034 municípios nessa situação.
 - **Faltam aderir**: municípios em `fust_ubs` que **não** estão em `fust_solicitacoes`.
 - **Fase II**: dentro do grupo "Adesão", separa por `situacao` (ver mapeamento acima).
 - Todos os filtros (`uf`, `municipio`) do painel se aplicam **antes** do cruzamento (filtram `fust_ubs` e `fust_solicitacoes` pelas mesmas colunas `uf`/`municipio` que cada tabela já tem, sem necessidade de join para filtrar).
