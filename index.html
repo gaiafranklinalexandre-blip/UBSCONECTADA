@@ -123,13 +123,6 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 .dash-chart-sub { font-size: 11px; color: var(--text-mid); margin-bottom: 14px; }
 
 /* Painel estratégico: donut + funil + ranking por UF */
-.secao-titulo-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 32px 0 14px; }
-.secao-titulo-row .secao-titulo { margin: 0; }
-
-.toggle-visao { display: flex; gap: 3px; background: var(--gray-bg); border: 1px solid var(--gray-border); border-radius: var(--radius); padding: 3px; }
-.toggle-btn { border: none; background: transparent; font-family: inherit; font-size: 11.5px; font-weight: 700; color: var(--text-mid); padding: 6px 14px; border-radius: var(--radius); cursor: pointer; }
-.toggle-btn.ativo { background: var(--blue); color: var(--white); }
-
 .estrategico-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; align-items: stretch; }
 @media (max-width: 800px) { .estrategico-grid { grid-template-columns: 1fr; } }
 
@@ -152,11 +145,23 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 .funil-barra { height: 100%; border-radius: 8px; transition: width .5s ease; min-width: 4px; }
 
 .uf-ranking { display: flex; flex-direction: column; gap: 9px; max-height: 460px; overflow-y: auto; padding-right: 6px; }
-.uf-linha { display: grid; grid-template-columns: 38px 1fr 76px; align-items: center; gap: 10px; font-size: 12px; }
+.uf-linha { display: grid; grid-template-columns: 38px 1fr 128px; align-items: center; gap: 10px; font-size: 12px; }
 .uf-sigla { font-weight: 800; color: var(--text); }
 .uf-barra-trilho { background: var(--gray-bg); border-radius: 6px; height: 17px; display: flex; overflow: hidden; }
 .uf-barra-seg { height: 100%; }
-.uf-total { color: var(--text-mid); text-align: right; font-size: 11.5px; }
+.uf-total { color: var(--text-mid); text-align: right; font-size: 11px; white-space: nowrap; }
+
+/* Ritmo de adesão (série por semana) */
+.ritmo-kpis { display: flex; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.ritmo-kpi { background: var(--blue-bg); border-radius: var(--card-r); padding: 10px 20px; }
+.ritmo-kpi-valor { font-size: 22px; font-weight: 800; color: var(--blue); line-height: 1; }
+.ritmo-kpi-label { font-size: 10.5px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .4px; margin-top: 4px; }
+.ritmo-grafico { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 10px; overflow-x: auto; }
+.ritmo-barra-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 0 34px; min-width: 34px; height: 100%; justify-content: flex-end; }
+.ritmo-barra-trilho { width: 100%; height: 100%; display: flex; align-items: flex-end; }
+.ritmo-barra { width: 100%; background: var(--blue); border-radius: 4px 4px 0 0; min-height: 3px; transition: height .4s ease; }
+.ritmo-barra-valor { font-size: 10px; font-weight: 700; color: var(--text); }
+.ritmo-barra-label { font-size: 9.5px; color: var(--text-mid); white-space: nowrap; }
 
 /* Tabela */
 .dash-ranking { width: 100%; border-collapse: collapse; margin-top: 4px; }
@@ -277,17 +282,11 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
     </div>
   </div>
 
-  <div class="secao-titulo-row">
-    <div class="secao-titulo">📊 Visão estratégica</div>
-    <div class="toggle-visao" id="toggleVisao">
-      <button type="button" class="toggle-btn ativo" data-modo="municipios" onclick="setModoVisao('municipios')">🏛️ Municípios</button>
-      <button type="button" class="toggle-btn" data-modo="ubs" onclick="setModoVisao('ubs')">🏥 UBS</button>
-    </div>
-  </div>
-  <div class="secao-sub" style="margin-top:-10px">Como o universo de <span id="tituloUnidadeVisao">municípios</span> elegíveis se distribui entre não aderiu, aderiu com Fase II pendente e Fase II concluída.</div>
+  <div class="secao-titulo">📊 Visão estratégica</div>
+  <div class="secao-sub">Como o universo de municípios elegíveis se distribui entre não aderiu, aderiu com Fase II pendente e Fase II concluída — sempre com o número de UBS correspondente.</div>
   <div class="estrategico-grid">
     <div class="dash-chart-card">
-      <div class="dash-chart-title"><span>Situação — <span id="donutTituloUnidade">municípios</span> elegíveis</span></div>
+      <div class="dash-chart-title"><span>Situação dos municípios elegíveis</span></div>
       <div class="donut-wrap">
         <svg id="donutSvg" width="176" height="176" viewBox="0 0 180 180" data-raio="70" data-cx="90" data-cy="90">
           <circle cx="90" cy="90" r="70" fill="none" stroke="var(--gray-border)" stroke-width="22"></circle>
@@ -302,7 +301,7 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
   </div>
 
   <div class="dash-chart-card">
-    <div class="dash-chart-title"><span>🔧 Progresso da Fase II — <span id="fase2DonutTituloUnidade">municípios</span> aderidos</span></div>
+    <div class="dash-chart-title"><span>🔧 Progresso da Fase II — municípios aderidos</span></div>
     <div class="dash-chart-sub">Dos que já aderiram, quantos concluíram a Fase II (responsável técnico + instalação confirmados) e quantos ainda faltam.</div>
     <div class="donut-wrap">
       <svg id="donutFase2Svg" width="150" height="150" viewBox="0 0 180 180" data-raio="70" data-cx="90" data-cy="90">
@@ -313,7 +312,7 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
   </div>
 
   <div class="dash-chart-card">
-    <div class="dash-chart-title"><span>Ranking por UF — <span id="ufRankingTituloUnidade">municípios</span> por situação</span></div>
+    <div class="dash-chart-title"><span>Ranking por UF — municípios e UBS por situação</span></div>
     <div class="dash-chart-sub">Ordenado pelas UFs com mais municípios não aderidos ou com Fase II pendente — prioridade de contato.</div>
     <div class="mapa-legenda" style="margin-bottom:14px">
       <span class="mapa-legenda-item"><span class="mapa-legenda-bola" style="background:var(--red)"></span>Não aderiu</span>
@@ -321,6 +320,16 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
       <span class="mapa-legenda-item"><span class="mapa-legenda-bola" style="background:var(--green)"></span>Fase II concluída</span>
     </div>
     <div class="uf-ranking" id="ufRanking"></div>
+  </div>
+
+  <div class="dash-chart-card">
+    <div class="dash-chart-title"><span>📈 Ritmo de adesão — solicitações por semana</span></div>
+    <div class="dash-chart-sub">Novas adesões (Fase I) registradas, agrupadas por semana, com base na data da solicitação.</div>
+    <div class="ritmo-kpis">
+      <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoUltimos15">—</div><div class="ritmo-kpi-label">Últimos 15 dias</div></div>
+      <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoUltimos30">—</div><div class="ritmo-kpi-label">Últimos 30 dias</div></div>
+    </div>
+    <div class="ritmo-grafico" id="ritmoGrafico"></div>
   </div>
 
   <div class="secao-titulo">✅ Adesão</div>
@@ -442,11 +451,7 @@ let detalheOffset = 0;
 const DETALHE_LIMIT = 50;
 window._detalheAcumulado = [];
 
-// Visão estratégica: alterna entre contar por município ou por UBS (estabelecimento) sem
-// precisar refazer a chamada à API — os dois totais já vêm juntos em ?action=stats/ranking_uf.
-let modoVisao = 'municipios'; // 'municipios' | 'ubs'
 let ultimoStats = null;
-let ultimoRankingUf = null;
 
 function normalizar(s) {
   const semAcento = (s || '').toLowerCase().normalize('NFD').split('').filter(function (c) {
@@ -655,6 +660,7 @@ async function carregarTudo() {
       carregarDetalhe(false),
       carregarMapa(),
       carregarRankingUf(),
+      carregarRitmoAdesao(),
     ]);
   } catch (e) {
     mostrarErroApi(e);
@@ -715,31 +721,21 @@ async function carregarStats() {
   }
 
   ultimoStats = stats;
-  renderVisaoEstrategica();
+  renderDonutPrincipal(stats);
+  renderDonutFase2(stats);
+  renderFunil(stats);
 }
 
 // ---------------------------------------------------------------------------
-// Visão estratégica: donut de situação + gauge de Fase II + funil + ranking por UF
-// Tudo controlado por `modoVisao` ('municipios' | 'ubs'), trocado sem nova chamada à API.
+// Visão estratégica: donut de situação + gauge de Fase II + funil + ranking por UF.
+// Município é sempre a base de proporção dos gráficos (é a unidade de adesão), mas o número
+// de UBS correspondente vem sempre junto, nunca só um ou outro (pedido do usuário em
+// 2026-09-04: "o número de municípios sempre precisa acompanhar o número de UBS").
 // ---------------------------------------------------------------------------
-function setModoVisao(modo) {
-  if (modoVisao === modo) return;
-  modoVisao = modo;
-  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('ativo', b.dataset.modo === modo));
-  const unidade = modo === 'ubs' ? 'UBS' : 'municípios';
-  ['tituloUnidadeVisao', 'donutTituloUnidade', 'fase2DonutTituloUnidade', 'ufRankingTituloUnidade'].forEach(id => {
-    document.getElementById(id).textContent = unidade;
-  });
-  renderVisaoEstrategica();
-  if (ultimoRankingUf) renderRankingUf(ultimoRankingUf);
-}
-
-function renderVisaoEstrategica() {
-  if (ultimoStats) { renderDonutPrincipal(ultimoStats); renderDonutFase2(ultimoStats); renderFunil(ultimoStats); }
-}
 
 // Desenha um donut genérico via <circle> + stroke-dasharray/dashoffset (técnica de anel SVG,
 // sem lib de gráficos). centroValor/centroLabel são strings já formatadas pelo chamador.
+// seg.ubs (opcional) é anotado na legenda ao lado da contagem de municípios.
 function renderDonutGenerico(svgId, legendaId, segmentos, total, centroValor, centroLabel, centroPequeno) {
   const svg = document.getElementById(svgId);
   svg.querySelectorAll('.donut-seg, .donut-centro-grupo').forEach(el => el.remove());
@@ -761,7 +757,8 @@ function renderDonutGenerico(svgId, legendaId, segmentos, total, centroValor, ce
     circle.setAttribute('stroke-dashoffset', String(-acc));
     circle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
     const title = document.createElementNS(svgNS, 'title');
-    title.textContent = `${seg.label}: ${fmtNum(seg.valor)} (${pctSafe(seg.valor, total)}%)`;
+    title.textContent = `${seg.label}: ${fmtNum(seg.valor)} município(s) (${pctSafe(seg.valor, total)}%)` +
+      (seg.ubs !== undefined ? ` — ${fmtNum(seg.ubs)} UBS` : '');
     circle.appendChild(title);
     svg.appendChild(circle);
     acc += len;
@@ -776,55 +773,53 @@ function renderDonutGenerico(svgId, legendaId, segmentos, total, centroValor, ce
   document.getElementById(legendaId).innerHTML = segmentos.map(seg => `
     <div class="donut-legenda-item">
       <span class="donut-legenda-bola" style="background:${seg.cor}"></span>
-      <span class="donut-legenda-txt"><b>${fmtNum(seg.valor)} (${pctSafe(seg.valor, total)}%)</b><span>${seg.label}</span></span>
+      <span class="donut-legenda-txt"><b>${fmtNum(seg.valor)} município(s) (${pctSafe(seg.valor, total)}%)</b>
+        <span>${seg.label}${seg.ubs !== undefined ? ' · ' + fmtNum(seg.ubs) + ' UBS' : ''}</span></span>
     </div>`).join('');
 }
 
 function renderDonutPrincipal(stats) {
-  const ubsView = modoVisao === 'ubs';
-  const total = ubsView ? stats.resumo_geral.ubs_total : stats.resumo_geral.municipios;
+  const total = stats.resumo_geral.municipios;
   const segmentos = [
-    { label: 'Não aderiu', valor: ubsView ? stats.faltam_aderir.ubs_total : stats.faltam_aderir.municipios, cor: CORES_STATUS.vermelho },
-    { label: 'Fase II pendente', valor: ubsView ? stats.fase2.pendente_ubs_total : stats.fase2.pendente_municipios, cor: CORES_STATUS.amarelo },
-    { label: 'Fase II concluída', valor: ubsView ? stats.fase2.completa_ubs_total : stats.fase2.completa_municipios, cor: CORES_STATUS.verde },
+    { label: 'Não aderiu', valor: stats.faltam_aderir.municipios, ubs: stats.faltam_aderir.ubs_total, cor: CORES_STATUS.vermelho },
+    { label: 'Fase II pendente', valor: stats.fase2.pendente_municipios, ubs: stats.fase2.pendente_ubs_total, cor: CORES_STATUS.amarelo },
+    { label: 'Fase II concluída', valor: stats.fase2.completa_municipios, ubs: stats.fase2.completa_ubs_total, cor: CORES_STATUS.verde },
   ];
-  renderDonutGenerico('donutSvg', 'donutLegenda', segmentos, total, fmtNum(total), ubsView ? 'UBS' : 'municípios');
+  renderDonutGenerico('donutSvg', 'donutLegenda', segmentos, total, fmtNum(total), `municípios · ${fmtNum(stats.resumo_geral.ubs_total)} UBS`);
 }
 
 // Drill-down: só entre quem já aderiu (Fase I feita) — quantos concluíram vs faltam concluir
 // a Fase II. Mostrado à parte do donut principal porque misturado com "não aderiu" ficava
 // menos legível (pedido do usuário em 2026-09-04, "faltou algo mais visual pra Fase II").
 function renderDonutFase2(stats) {
-  const ubsView = modoVisao === 'ubs';
-  const completa = ubsView ? stats.fase2.completa_ubs_total : stats.fase2.completa_municipios;
-  const pendente = ubsView ? stats.fase2.pendente_ubs_total : stats.fase2.pendente_municipios;
-  const totalAderidos = completa + pendente;
+  const completaMun = stats.fase2.completa_municipios, completaUbs = stats.fase2.completa_ubs_total;
+  const pendenteMun = stats.fase2.pendente_municipios, pendenteUbs = stats.fase2.pendente_ubs_total;
+  const totalMunAderidos = completaMun + pendenteMun;
   const segmentos = [
-    { label: 'Fase II concluída', valor: completa, cor: CORES_STATUS.verde },
-    { label: 'Fase II pendente', valor: pendente, cor: CORES_STATUS.amarelo },
+    { label: 'Fase II concluída', valor: completaMun, ubs: completaUbs, cor: CORES_STATUS.verde },
+    { label: 'Fase II pendente', valor: pendenteMun, ubs: pendenteUbs, cor: CORES_STATUS.amarelo },
   ];
-  const centroValor = `${Math.round(pctSafe(completa, totalAderidos))}%`;
-  renderDonutGenerico('donutFase2Svg', 'donutFase2Legenda', segmentos, totalAderidos, centroValor, 'concluída', true);
+  const centroValor = `${Math.round(pctSafe(completaMun, totalMunAderidos))}%`;
+  renderDonutGenerico('donutFase2Svg', 'donutFase2Legenda', segmentos, totalMunAderidos, centroValor, 'dos municípios concluíram', true);
 }
 
 function renderFunil(stats) {
-  const ubsView = modoVisao === 'ubs';
-  const total = ubsView ? stats.resumo_geral.ubs_total : stats.resumo_geral.municipios;
-  const aderidos = ubsView ? stats.adesao.ubs_total : stats.adesao.municipios;
-  const fase2Completa = ubsView ? stats.fase2.completa_ubs_total : stats.fase2.completa_municipios;
+  const totalMun = stats.resumo_geral.municipios, totalUbs = stats.resumo_geral.ubs_total;
+  const aderidosMun = stats.adesao.municipios, aderidosUbs = stats.adesao.ubs_total;
+  const fase2Mun = stats.fase2.completa_municipios, fase2Ubs = stats.fase2.completa_ubs_total;
 
   const etapas = [
-    { nome: ubsView ? 'UBS elegíveis' : 'Municípios elegíveis', valor: total, cor: CORES_STATUS.azul, subtitulo: 'universo do edital' },
-    { nome: ubsView ? 'UBS em municípios aderidos' : 'Aderiram (Fase I)', valor: aderidos, cor: CORES_STATUS.amarelo, subtitulo: `${pctSafe(aderidos, total)}% do total` },
-    { nome: 'Fase II concluída', valor: fase2Completa, cor: CORES_STATUS.verde, subtitulo: `${pctSafe(fase2Completa, total)}% do total · ${pctSafe(fase2Completa, aderidos)}% dos aderidos` },
+    { nome: 'Municípios elegíveis', valor: totalMun, ubs: totalUbs, cor: CORES_STATUS.azul, subtitulo: 'universo do edital' },
+    { nome: 'Aderiram (Fase I)', valor: aderidosMun, ubs: aderidosUbs, cor: CORES_STATUS.amarelo, subtitulo: `${pctSafe(aderidosMun, totalMun)}% do total` },
+    { nome: 'Fase II concluída', valor: fase2Mun, ubs: fase2Ubs, cor: CORES_STATUS.verde, subtitulo: `${pctSafe(fase2Mun, totalMun)}% do total · ${pctSafe(fase2Mun, aderidosMun)}% dos aderidos` },
   ];
 
   document.getElementById('funilProgresso').innerHTML = etapas.map(e => {
-    const largura = total > 0 ? Math.max(4, Math.round(100 * e.valor / total)) : 0;
+    const largura = totalMun > 0 ? Math.max(4, Math.round(100 * e.valor / totalMun)) : 0;
     return `<div class="funil-etapa">
       <div class="funil-topo">
         <span class="funil-nome">${e.nome}</span>
-        <span class="funil-valor"><b>${fmtNum(e.valor)}</b> — ${e.subtitulo}</span>
+        <span class="funil-valor"><b>${fmtNum(e.valor)} mun.</b> · ${fmtNum(e.ubs)} UBS — ${e.subtitulo}</span>
       </div>
       <div class="funil-trilho"><div class="funil-barra" style="width:${largura}%;background:${e.cor}"></div></div>
     </div>`;
@@ -833,7 +828,6 @@ function renderFunil(stats) {
 
 async function carregarRankingUf() {
   const dados = await fetchJson(apiUrl('ranking_uf', filtroParams()));
-  ultimoRankingUf = dados;
   renderRankingUf(dados);
 }
 
@@ -844,21 +838,19 @@ function renderRankingUf(dados) {
     return;
   }
 
-  const campo = modoVisao === 'ubs'
-    ? { nao: 'ubs_nao_aderiu', pend: 'ubs_fase2_pendente', comp: 'ubs_fase2_completa' }
-    : { nao: 'mun_nao_aderiu', pend: 'mun_fase2_pendente', comp: 'mun_fase2_completa' };
-
-  const totais = dados.map(d => d[campo.nao] + d[campo.pend] + d[campo.comp]);
-  const maxTotal = Math.max(...totais);
+  // Barras compostas pela contagem de municípios (proporção mais legível); o total de UBS
+  // correspondente aparece sempre ao lado, nunca substitui o número de municípios.
+  const totaisMun = dados.map(d => d.mun_nao_aderiu + d.mun_fase2_pendente + d.mun_fase2_completa);
+  const maxTotalMun = Math.max(...totaisMun);
   box.innerHTML = dados.map(d => {
-    const nao = d[campo.nao], pend = d[campo.pend], comp = d[campo.comp];
-    const total = nao + pend + comp;
-    const larguraTotal = maxTotal > 0 ? (100 * total / maxTotal) : 0;
-    const segNao = total > 0 ? (100 * nao / total) : 0;
-    const segPend = total > 0 ? (100 * pend / total) : 0;
-    const segComp = total > 0 ? (100 * comp / total) : 0;
-    const unidade = modoVisao === 'ubs' ? 'UBS' : 'município(s)';
-    const titulo = `${d.uf}: ${fmtNum(nao)} não aderiu, ${fmtNum(pend)} Fase II pendente, ${fmtNum(comp)} Fase II concluída (${unidade})`;
+    const totalMun = d.mun_nao_aderiu + d.mun_fase2_pendente + d.mun_fase2_completa;
+    const totalUbs = d.ubs_nao_aderiu + d.ubs_fase2_pendente + d.ubs_fase2_completa;
+    const larguraTotal = maxTotalMun > 0 ? (100 * totalMun / maxTotalMun) : 0;
+    const segNao = totalMun > 0 ? (100 * d.mun_nao_aderiu / totalMun) : 0;
+    const segPend = totalMun > 0 ? (100 * d.mun_fase2_pendente / totalMun) : 0;
+    const segComp = totalMun > 0 ? (100 * d.mun_fase2_completa / totalMun) : 0;
+    const titulo = `${d.uf}: ${fmtNum(d.mun_nao_aderiu)} não aderiu, ${fmtNum(d.mun_fase2_pendente)} Fase II pendente, `
+      + `${fmtNum(d.mun_fase2_completa)} Fase II concluída (municípios) — ${fmtNum(totalUbs)} UBS no total`;
     return `<div class="uf-linha">
       <span class="uf-sigla">${d.uf}</span>
       <span class="uf-barra-trilho" style="width:${larguraTotal}%" title="${escapeAttr(titulo)}">
@@ -866,7 +858,62 @@ function renderRankingUf(dados) {
         <span class="uf-barra-seg" style="width:${segPend}%;background:${CORES_STATUS.amarelo}"></span>
         <span class="uf-barra-seg" style="width:${segComp}%;background:${CORES_STATUS.verde}"></span>
       </span>
-      <span class="uf-total">${fmtNum(total)}</span>
+      <span class="uf-total">${fmtNum(totalMun)} mun · ${fmtNum(totalUbs)} UBS</span>
+    </div>`;
+  }).join('');
+}
+
+// ---------------------------------------------------------------------------
+// Ritmo de adesão (série diária agrupada por semana)
+// ---------------------------------------------------------------------------
+async function carregarRitmoAdesao() {
+  const dados = await fetchJson(apiUrl('serie_adesoes', filtroParams()));
+  renderRitmoAdesao(dados);
+}
+
+// Segunda-feira da semana ISO de uma data 'YYYY-MM-DD'.
+function inicioDaSemana(dataStr) {
+  const dt = new Date(dataStr + 'T00:00:00');
+  const diasDesdeSegunda = (dt.getDay() + 6) % 7; // getDay(): 0=domingo
+  dt.setDate(dt.getDate() - diasDesdeSegunda);
+  return dt;
+}
+
+function renderRitmoAdesao(dados) {
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const cutoff15 = new Date(hoje); cutoff15.setDate(hoje.getDate() - 14);
+  const cutoff30 = new Date(hoje); cutoff30.setDate(hoje.getDate() - 29);
+
+  let n15 = 0, n30 = 0;
+  const semanas = {}; // 'YYYY-MM-DD' (segunda-feira) -> quantidade
+  dados.forEach(d => {
+    const dt = new Date(d.data + 'T00:00:00');
+    if (dt >= cutoff15) n15 += d.quantidade;
+    if (dt >= cutoff30) n30 += d.quantidade;
+    const chave = inicioDaSemana(d.data).toISOString().slice(0, 10);
+    semanas[chave] = (semanas[chave] || 0) + d.quantidade;
+  });
+
+  document.getElementById('ritmoUltimos15').textContent = fmtNum(n15);
+  document.getElementById('ritmoUltimos30').textContent = fmtNum(n30);
+
+  const chaves = Object.keys(semanas).sort();
+  const box = document.getElementById('ritmoGrafico');
+  if (!chaves.length) {
+    box.innerHTML = `<div class="vazio" style="padding:20px 10px;width:100%"><p>Sem solicitações com data para os filtros atuais.</p></div>`;
+    return;
+  }
+
+  const max = Math.max(1, ...chaves.map(k => semanas[k]));
+  box.innerHTML = chaves.map(k => {
+    const qtd = semanas[k];
+    const altura = Math.max(3, Math.round(100 * qtd / max));
+    const dt = new Date(k + 'T00:00:00');
+    const label = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return `<div class="ritmo-barra-col" title="Semana de ${label}: ${fmtNum(qtd)} adesão(ões)">
+      <div class="ritmo-barra-valor">${fmtNum(qtd)}</div>
+      <div class="ritmo-barra-trilho"><div class="ritmo-barra" style="height:${altura}%"></div></div>
+      <div class="ritmo-barra-label">${label}</div>
     </div>`;
   }).join('');
 }
