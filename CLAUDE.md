@@ -74,6 +74,18 @@ Lista municípios com Fase II pendente (`SOLICITADA` ou `EM PREENCHIMENTO FASE I
 
 Os dois botões de download (`baixarPrioritariosXLSX()` e `baixarDetalheXLSX()`) geram `.xlsx` de verdade via **ExcelJS** (CDN, ver "Exceções à regra de vanilla JS" abaixo) — cabeçalho em negrito/azul, 1ª linha congelada, autofiltro, largura de coluna automática e células coloridas (verde/amarelo/vermelho, espelhando o farol do painel) nas colunas de situação. Motivo: CSV puro abre sem nenhuma formatação no Excel e os apoiadores de campo tinham dificuldade de ler a planilha crua (pedido do usuário em 2026-07-23). Função genérica: `downloadXLSX(nomeBase, headers, rows, colColors)`.
 
+## Painel estratégico (gráficos)
+
+Seção "📊 Visão estratégica" (`index.html`, logo após o Resumo geral) com 3 visualizações — pedida pelo usuário em 2026-09-04 para dar uma leitura visual rápida do funil de adesão, complementar aos cards de KPI numéricos:
+
+- **Donut de situação dos municípios** (`renderDonut()`): 3 fatias (não aderiu / Fase II pendente / Fase II concluída) construídas com `<circle>` SVG e `stroke-dasharray`/`stroke-dashoffset` (técnica de anel via `stroke`, sem lib de gráficos) — usa os mesmos dados de `?action=stats` já buscados por `carregarStats()`, sem chamada extra à API.
+- **Funil de progresso** (`renderFunil()`): 3 barras horizontais (Elegíveis → Aderiram → Fase II concluída) com largura proporcional ao total, também a partir de `?action=stats`.
+- **Ranking por UF** (`carregarRankingUf()`): barra horizontal empilhada por UF (não aderiu/pendente/completa), ordenada pelas UFs com mais municípios ainda não aderidos ou pendentes de Fase II — ajuda a priorizar onde concentrar contato. Consome o endpoint novo `?action=ranking_uf` em `sync-fust.php` (mesmo padrão de agregação de `ubsPorMunicipio()`/`solicitacoesPorMunicipio()`, respeita os filtros de UF/município).
+
+Cores reaproveitadas das mesmas `--red`/`--yellow`/`--green` já usadas no farol e no mapa (constante `CORES_STATUS` no JS, valores hex fixos porque `var()` do CSS não é confiável em atributos de presentation SVG como `stroke`) — nenhuma paleta nova foi introduzida. Nenhuma lib de gráficos foi adicionada (SVG/CSS puro), mantendo a exceção à regra de vanilla JS restrita a ExcelJS e Leaflet.
+
+**Atenção**: `?action=ranking_uf` é uma rota nova em `sync-fust.php` — como esse arquivo é gitignored, precisa ser reenviado manualmente para o Hostinger (ver "Regras principais de desenvolvimento") antes do ranking por UF funcionar em produção; até lá, essa seção específica mostra um toast de erro, mas o resto do painel continua funcionando normalmente.
+
 ## Mapa de adesão (`?action=mapa`)
 
 Um ponto por município elegível (universo de `fust_ubs`, mesmo padrão do `?action=prioritarios`), colorido pela situação: vermelho = não aderiu, amarelo = aderiu com Fase II pendente, verde = Fase II concluída. Renderizado com **Leaflet** (CDN, tiles OpenStreetMap) na função `carregarMapa()`, chamada junto com `carregarStats()`/`carregarDetalhe()` no `Promise.all` de `carregarTudo()` — por isso já respeita os filtros de UF/município ativos.

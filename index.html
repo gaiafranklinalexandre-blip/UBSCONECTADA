@@ -122,6 +122,34 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 .dash-chart-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .dash-chart-sub { font-size: 11px; color: var(--text-mid); margin-bottom: 14px; }
 
+/* Painel estratégico: donut + funil + ranking por UF */
+.estrategico-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; align-items: stretch; }
+@media (max-width: 800px) { .estrategico-grid { grid-template-columns: 1fr; } }
+
+.donut-wrap { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; justify-content: center; padding: 6px 0; }
+.donut-centro-valor { font-size: 25px; font-weight: 800; fill: var(--text); }
+.donut-centro-label { font-size: 10.5px; fill: var(--text-mid); }
+.donut-legenda { display: flex; flex-direction: column; gap: 12px; }
+.donut-legenda-item { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
+.donut-legenda-bola { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.donut-legenda-txt b { display: block; font-size: 13.5px; color: var(--text); }
+.donut-legenda-txt span { color: var(--text-mid); font-size: 11.5px; }
+
+.funil { display: flex; flex-direction: column; justify-content: center; gap: 16px; height: 100%; padding: 6px 0; }
+.funil-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; gap: 8px; }
+.funil-nome { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.funil-valor { font-size: 11.5px; color: var(--text-mid); white-space: nowrap; }
+.funil-valor b { color: var(--text); font-size: 13.5px; }
+.funil-trilho { background: var(--gray-bg); border-radius: 8px; height: 24px; overflow: hidden; }
+.funil-barra { height: 100%; border-radius: 8px; transition: width .5s ease; min-width: 4px; }
+
+.uf-ranking { display: flex; flex-direction: column; gap: 9px; max-height: 460px; overflow-y: auto; padding-right: 6px; }
+.uf-linha { display: grid; grid-template-columns: 38px 1fr 76px; align-items: center; gap: 10px; font-size: 12px; }
+.uf-sigla { font-weight: 800; color: var(--text); }
+.uf-barra-trilho { background: var(--gray-bg); border-radius: 6px; height: 17px; display: flex; overflow: hidden; }
+.uf-barra-seg { height: 100%; }
+.uf-total { color: var(--text-mid); text-align: right; font-size: 11.5px; }
+
 /* Tabela */
 .dash-ranking { width: 100%; border-collapse: collapse; margin-top: 4px; }
 .dash-ranking th { font-size: 10px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .5px; text-align: left; padding: 6px 8px; border-bottom: 2px solid var(--gray-border); }
@@ -239,6 +267,35 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
       <div class="dash-kpi-sub">ainda sem empresa manifestando interesse</div>
       <div class="dash-kpi-bg-ico">⚠️</div>
     </div>
+  </div>
+
+  <div class="secao-titulo">📊 Visão estratégica</div>
+  <div class="secao-sub">Como o universo de municípios elegíveis se distribui entre não aderiu, aderiu com Fase II pendente e Fase II concluída.</div>
+  <div class="estrategico-grid">
+    <div class="dash-chart-card">
+      <div class="dash-chart-title"><span>Situação dos municípios elegíveis</span></div>
+      <div class="donut-wrap">
+        <svg id="donutSvg" width="176" height="176" viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="70" fill="none" stroke="var(--gray-border)" stroke-width="22"></circle>
+        </svg>
+        <div class="donut-legenda" id="donutLegenda"></div>
+      </div>
+    </div>
+    <div class="dash-chart-card">
+      <div class="dash-chart-title"><span>Funil de progresso</span></div>
+      <div class="funil" id="funilProgresso"></div>
+    </div>
+  </div>
+
+  <div class="dash-chart-card">
+    <div class="dash-chart-title"><span>Ranking por UF — municípios por situação</span></div>
+    <div class="dash-chart-sub">Ordenado pelas UFs com mais municípios não aderidos ou com Fase II pendente — prioridade de contato.</div>
+    <div class="mapa-legenda" style="margin-bottom:14px">
+      <span class="mapa-legenda-item"><span class="mapa-legenda-bola" style="background:var(--red)"></span>Não aderiu</span>
+      <span class="mapa-legenda-item"><span class="mapa-legenda-bola" style="background:var(--yellow)"></span>Aderiu — Fase II pendente</span>
+      <span class="mapa-legenda-item"><span class="mapa-legenda-bola" style="background:var(--green)"></span>Fase II concluída</span>
+    </div>
+    <div class="uf-ranking" id="ufRanking"></div>
   </div>
 
   <div class="secao-titulo">✅ Adesão</div>
@@ -428,6 +485,11 @@ function filtroParams(extra) {
 }
 
 function fmtNum(n) { return (n || 0).toLocaleString('pt-BR'); }
+function pctSafe(n, d) { return d > 0 ? Math.round(1000 * n / d) / 10 : 0; }
+
+// Hex fixos (não var() CSS) porque são usados em atributos de presentation SVG (stroke) e em
+// estilo inline gerado via JS — mesmo padrão já usado em COR_SITUACAO_MAPA para o mapa.
+const CORES_STATUS = { vermelho: '#E52207', amarelo: '#FFCD07', verde: '#168821', azul: '#1351B4' };
 function fmtData(d) {
   if (!d) return '—';
   const [y, m, dia] = d.split('-');
@@ -561,6 +623,7 @@ async function carregarTudo() {
       carregarStats(),
       carregarDetalhe(false),
       carregarMapa(),
+      carregarRankingUf(),
     ]);
   } catch (e) {
     mostrarErroApi(e);
@@ -619,6 +682,110 @@ async function carregarStats() {
   } else {
     obsBox.style.display = 'none';
   }
+
+  renderDonut(stats);
+  renderFunil(stats);
+}
+
+// ---------------------------------------------------------------------------
+// Visão estratégica: donut de situação + funil de progresso + ranking por UF
+// ---------------------------------------------------------------------------
+function renderDonut(stats) {
+  const total = stats.resumo_geral.municipios;
+  const segmentos = [
+    { label: 'Não aderiu', valor: stats.faltam_aderir.municipios, cor: CORES_STATUS.vermelho },
+    { label: 'Fase II pendente', valor: stats.fase2.pendente_municipios, cor: CORES_STATUS.amarelo },
+    { label: 'Fase II concluída', valor: stats.fase2.completa_municipios, cor: CORES_STATUS.verde },
+  ];
+
+  const svg = document.getElementById('donutSvg');
+  svg.querySelectorAll('.donut-seg, .donut-centro-grupo').forEach(el => el.remove());
+
+  const r = 70, circ = 2 * Math.PI * r;
+  let acc = 0;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  segmentos.forEach(seg => {
+    const fracao = total > 0 ? seg.valor / total : 0;
+    const len = fracao * circ;
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('class', 'donut-seg');
+    circle.setAttribute('cx', 90); circle.setAttribute('cy', 90); circle.setAttribute('r', r);
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', seg.cor);
+    circle.setAttribute('stroke-width', 22);
+    circle.setAttribute('stroke-dasharray', `${len} ${Math.max(circ - len, 0)}`);
+    circle.setAttribute('stroke-dashoffset', String(-acc));
+    circle.setAttribute('transform', 'rotate(-90 90 90)');
+    const title = document.createElementNS(svgNS, 'title');
+    title.textContent = `${seg.label}: ${fmtNum(seg.valor)} (${pctSafe(seg.valor, total)}%)`;
+    circle.appendChild(title);
+    svg.appendChild(circle);
+    acc += len;
+  });
+
+  const g = document.createElementNS(svgNS, 'g');
+  g.setAttribute('class', 'donut-centro-grupo');
+  g.innerHTML = `<text x="90" y="86" text-anchor="middle" class="donut-centro-valor">${fmtNum(total)}</text>
+    <text x="90" y="104" text-anchor="middle" class="donut-centro-label">municípios</text>`;
+  svg.appendChild(g);
+
+  document.getElementById('donutLegenda').innerHTML = segmentos.map(seg => `
+    <div class="donut-legenda-item">
+      <span class="donut-legenda-bola" style="background:${seg.cor}"></span>
+      <span class="donut-legenda-txt"><b>${fmtNum(seg.valor)} (${pctSafe(seg.valor, total)}%)</b><span>${seg.label}</span></span>
+    </div>`).join('');
+}
+
+function renderFunil(stats) {
+  const total = stats.resumo_geral.municipios;
+  const aderidos = stats.adesao.municipios;
+  const fase2Completa = stats.fase2.completa_municipios;
+
+  const etapas = [
+    { nome: 'Municípios elegíveis', valor: total, cor: CORES_STATUS.azul, subtitulo: 'universo do edital' },
+    { nome: 'Aderiram (Fase I)', valor: aderidos, cor: CORES_STATUS.amarelo, subtitulo: `${pctSafe(aderidos, total)}% do total` },
+    { nome: 'Fase II concluída', valor: fase2Completa, cor: CORES_STATUS.verde, subtitulo: `${pctSafe(fase2Completa, total)}% do total · ${pctSafe(fase2Completa, aderidos)}% dos aderidos` },
+  ];
+
+  document.getElementById('funilProgresso').innerHTML = etapas.map(e => {
+    const largura = total > 0 ? Math.max(4, Math.round(100 * e.valor / total)) : 0;
+    return `<div class="funil-etapa">
+      <div class="funil-topo">
+        <span class="funil-nome">${e.nome}</span>
+        <span class="funil-valor"><b>${fmtNum(e.valor)}</b> — ${e.subtitulo}</span>
+      </div>
+      <div class="funil-trilho"><div class="funil-barra" style="width:${largura}%;background:${e.cor}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+async function carregarRankingUf() {
+  const dados = await fetchJson(apiUrl('ranking_uf', filtroParams()));
+  const box = document.getElementById('ufRanking');
+
+  if (!dados.length) {
+    box.innerHTML = `<div class="vazio" style="padding:20px 10px"><p>Sem dados para os filtros atuais.</p></div>`;
+    return;
+  }
+
+  const maxTotal = Math.max(...dados.map(d => d.nao_aderiu + d.fase2_pendente + d.fase2_completa));
+  box.innerHTML = dados.map(d => {
+    const total = d.nao_aderiu + d.fase2_pendente + d.fase2_completa;
+    const larguraTotal = maxTotal > 0 ? (100 * total / maxTotal) : 0;
+    const segNao = total > 0 ? (100 * d.nao_aderiu / total) : 0;
+    const segPend = total > 0 ? (100 * d.fase2_pendente / total) : 0;
+    const segComp = total > 0 ? (100 * d.fase2_completa / total) : 0;
+    const titulo = `${d.uf}: ${fmtNum(d.nao_aderiu)} não aderiu, ${fmtNum(d.fase2_pendente)} Fase II pendente, ${fmtNum(d.fase2_completa)} Fase II concluída`;
+    return `<div class="uf-linha">
+      <span class="uf-sigla">${d.uf}</span>
+      <span class="uf-barra-trilho" style="width:${larguraTotal}%" title="${escapeAttr(titulo)}">
+        <span class="uf-barra-seg" style="width:${segNao}%;background:${CORES_STATUS.vermelho}"></span>
+        <span class="uf-barra-seg" style="width:${segPend}%;background:${CORES_STATUS.amarelo}"></span>
+        <span class="uf-barra-seg" style="width:${segComp}%;background:${CORES_STATUS.verde}"></span>
+      </span>
+      <span class="uf-total">${fmtNum(total)}</span>
+    </div>`;
+  }).join('');
 }
 
 // ---------------------------------------------------------------------------
