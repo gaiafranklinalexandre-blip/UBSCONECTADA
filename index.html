@@ -134,22 +134,25 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 .donut-legenda-item { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
 .donut-legenda-bola { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 .donut-legenda-txt b { display: block; font-size: 13.5px; color: var(--text); }
-.donut-legenda-txt span { color: var(--text-mid); font-size: 11.5px; }
+.donut-legenda-txt span { display: block; color: var(--text-mid); font-size: 11.5px; }
+.donut-legenda-ubs { font-size: 10.5px; margin-top: 2px; }
 
 .funil { display: flex; flex-direction: column; justify-content: center; gap: 16px; height: 100%; padding: 6px 0; }
-.funil-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; gap: 8px; }
+.funil-topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; gap: 8px; flex-wrap: wrap; }
 .funil-nome { font-size: 12.5px; font-weight: 700; color: var(--text); }
-.funil-valor { font-size: 11.5px; color: var(--text-mid); white-space: nowrap; }
+.funil-valor { font-size: 11.5px; color: var(--text-mid); text-align: right; }
 .funil-valor b { color: var(--text); font-size: 13.5px; }
 .funil-trilho { background: var(--gray-bg); border-radius: 8px; height: 24px; overflow: hidden; }
 .funil-barra { height: 100%; border-radius: 8px; transition: width .5s ease; min-width: 4px; }
 
 .uf-ranking { display: flex; flex-direction: column; gap: 9px; max-height: 460px; overflow-y: auto; padding-right: 6px; }
-.uf-linha { display: grid; grid-template-columns: 38px 1fr 128px; align-items: center; gap: 10px; font-size: 12px; }
+.uf-linha { display: grid; grid-template-columns: 38px 1fr 148px; align-items: center; gap: 10px; font-size: 12px; }
 .uf-sigla { font-weight: 800; color: var(--text); }
 .uf-barra-trilho { background: var(--gray-bg); border-radius: 6px; height: 17px; display: flex; overflow: hidden; }
 .uf-barra-seg { height: 100%; }
-.uf-total { color: var(--text-mid); text-align: right; font-size: 11px; white-space: nowrap; }
+.uf-total { color: var(--text-mid); text-align: right; font-size: 11px; line-height: 1.4; }
+.uf-total-mun { font-weight: 700; color: var(--text); }
+.uf-total-ubs { font-size: 10px; }
 
 /* Ritmo de adesão (série por semana) */
 .ritmo-kpis { display: flex; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
@@ -735,7 +738,9 @@ async function carregarStats() {
 
 // Desenha um donut genérico via <circle> + stroke-dasharray/dashoffset (técnica de anel SVG,
 // sem lib de gráficos). centroValor/centroLabel são strings já formatadas pelo chamador.
-// seg.ubs (opcional) é anotado na legenda ao lado da contagem de municípios.
+// seg.ubsComVenc/seg.ubsSemVenc (opcionais) são anotados na legenda — o total de UBS nunca é
+// mostrado sozinho, sempre já separado em com/sem empresa vencedora (pedido do usuário em
+// 2026-09-04: "separar as UBS com proposta e as sem proposta").
 function renderDonutGenerico(svgId, legendaId, segmentos, total, centroValor, centroLabel, centroPequeno) {
   const svg = document.getElementById(svgId);
   svg.querySelectorAll('.donut-seg, .donut-centro-grupo').forEach(el => el.remove());
@@ -758,7 +763,7 @@ function renderDonutGenerico(svgId, legendaId, segmentos, total, centroValor, ce
     circle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
     const title = document.createElementNS(svgNS, 'title');
     title.textContent = `${seg.label}: ${fmtNum(seg.valor)} município(s) (${pctSafe(seg.valor, total)}%)` +
-      (seg.ubs !== undefined ? ` — ${fmtNum(seg.ubs)} UBS` : '');
+      (seg.ubsComVenc !== undefined ? ` — ${fmtNum(seg.ubsComVenc)} UBS c/ vencedora, ${fmtNum(seg.ubsSemVenc)} s/ vencedora` : '');
     circle.appendChild(title);
     svg.appendChild(circle);
     acc += len;
@@ -774,44 +779,46 @@ function renderDonutGenerico(svgId, legendaId, segmentos, total, centroValor, ce
     <div class="donut-legenda-item">
       <span class="donut-legenda-bola" style="background:${seg.cor}"></span>
       <span class="donut-legenda-txt"><b>${fmtNum(seg.valor)} município(s) (${pctSafe(seg.valor, total)}%)</b>
-        <span>${seg.label}${seg.ubs !== undefined ? ' · ' + fmtNum(seg.ubs) + ' UBS' : ''}</span></span>
+        <span>${seg.label}</span>
+        ${seg.ubsComVenc !== undefined ? `<span class="donut-legenda-ubs">${fmtNum(seg.ubsComVenc)} UBS c/ vencedora · ${fmtNum(seg.ubsSemVenc)} s/ vencedora</span>` : ''}</span>
     </div>`).join('');
 }
 
 function renderDonutPrincipal(stats) {
   const total = stats.resumo_geral.municipios;
   const segmentos = [
-    { label: 'Não aderiu', valor: stats.faltam_aderir.municipios, ubs: stats.faltam_aderir.ubs_total, cor: CORES_STATUS.vermelho },
-    { label: 'Fase II pendente', valor: stats.fase2.pendente_municipios, ubs: stats.fase2.pendente_ubs_total, cor: CORES_STATUS.amarelo },
-    { label: 'Fase II concluída', valor: stats.fase2.completa_municipios, ubs: stats.fase2.completa_ubs_total, cor: CORES_STATUS.verde },
+    { label: 'Não aderiu', valor: stats.faltam_aderir.municipios, ubsComVenc: stats.faltam_aderir.ubs_com_venc, ubsSemVenc: stats.faltam_aderir.ubs_sem_venc, cor: CORES_STATUS.vermelho },
+    { label: 'Fase II pendente', valor: stats.fase2.pendente_municipios, ubsComVenc: stats.fase2.pendente_ubs_com_venc, ubsSemVenc: stats.fase2.pendente_ubs_sem_venc, cor: CORES_STATUS.amarelo },
+    { label: 'Fase II concluída', valor: stats.fase2.completa_municipios, ubsComVenc: stats.fase2.completa_ubs_com_venc, ubsSemVenc: stats.fase2.completa_ubs_sem_venc, cor: CORES_STATUS.verde },
   ];
-  renderDonutGenerico('donutSvg', 'donutLegenda', segmentos, total, fmtNum(total), `municípios · ${fmtNum(stats.resumo_geral.ubs_total)} UBS`);
+  const centroLabel = `municípios · ${fmtNum(stats.resumo_geral.ubs_com_venc)} UBS c/venc, ${fmtNum(stats.resumo_geral.ubs_sem_venc)} s/venc`;
+  renderDonutGenerico('donutSvg', 'donutLegenda', segmentos, total, fmtNum(total), centroLabel);
 }
 
 // Drill-down: só entre quem já aderiu (Fase I feita) — quantos concluíram vs faltam concluir
 // a Fase II. Mostrado à parte do donut principal porque misturado com "não aderiu" ficava
 // menos legível (pedido do usuário em 2026-09-04, "faltou algo mais visual pra Fase II").
 function renderDonutFase2(stats) {
-  const completaMun = stats.fase2.completa_municipios, completaUbs = stats.fase2.completa_ubs_total;
-  const pendenteMun = stats.fase2.pendente_municipios, pendenteUbs = stats.fase2.pendente_ubs_total;
+  const completaMun = stats.fase2.completa_municipios;
+  const pendenteMun = stats.fase2.pendente_municipios;
   const totalMunAderidos = completaMun + pendenteMun;
   const segmentos = [
-    { label: 'Fase II concluída', valor: completaMun, ubs: completaUbs, cor: CORES_STATUS.verde },
-    { label: 'Fase II pendente', valor: pendenteMun, ubs: pendenteUbs, cor: CORES_STATUS.amarelo },
+    { label: 'Fase II concluída', valor: completaMun, ubsComVenc: stats.fase2.completa_ubs_com_venc, ubsSemVenc: stats.fase2.completa_ubs_sem_venc, cor: CORES_STATUS.verde },
+    { label: 'Fase II pendente', valor: pendenteMun, ubsComVenc: stats.fase2.pendente_ubs_com_venc, ubsSemVenc: stats.fase2.pendente_ubs_sem_venc, cor: CORES_STATUS.amarelo },
   ];
   const centroValor = `${Math.round(pctSafe(completaMun, totalMunAderidos))}%`;
   renderDonutGenerico('donutFase2Svg', 'donutFase2Legenda', segmentos, totalMunAderidos, centroValor, 'dos municípios concluíram', true);
 }
 
 function renderFunil(stats) {
-  const totalMun = stats.resumo_geral.municipios, totalUbs = stats.resumo_geral.ubs_total;
-  const aderidosMun = stats.adesao.municipios, aderidosUbs = stats.adesao.ubs_total;
-  const fase2Mun = stats.fase2.completa_municipios, fase2Ubs = stats.fase2.completa_ubs_total;
+  const totalMun = stats.resumo_geral.municipios;
+  const aderidosMun = stats.adesao.municipios;
+  const fase2Mun = stats.fase2.completa_municipios;
 
   const etapas = [
-    { nome: 'Municípios elegíveis', valor: totalMun, ubs: totalUbs, cor: CORES_STATUS.azul, subtitulo: 'universo do edital' },
-    { nome: 'Aderiram (Fase I)', valor: aderidosMun, ubs: aderidosUbs, cor: CORES_STATUS.amarelo, subtitulo: `${pctSafe(aderidosMun, totalMun)}% do total` },
-    { nome: 'Fase II concluída', valor: fase2Mun, ubs: fase2Ubs, cor: CORES_STATUS.verde, subtitulo: `${pctSafe(fase2Mun, totalMun)}% do total · ${pctSafe(fase2Mun, aderidosMun)}% dos aderidos` },
+    { nome: 'Municípios elegíveis', valor: totalMun, ubsComVenc: stats.resumo_geral.ubs_com_venc, ubsSemVenc: stats.resumo_geral.ubs_sem_venc, cor: CORES_STATUS.azul, subtitulo: 'universo do edital' },
+    { nome: 'Aderiram (Fase I)', valor: aderidosMun, ubsComVenc: stats.adesao.ubs_com_venc, ubsSemVenc: stats.adesao.ubs_sem_venc, cor: CORES_STATUS.amarelo, subtitulo: `${pctSafe(aderidosMun, totalMun)}% do total` },
+    { nome: 'Fase II concluída', valor: fase2Mun, ubsComVenc: stats.fase2.completa_ubs_com_venc, ubsSemVenc: stats.fase2.completa_ubs_sem_venc, cor: CORES_STATUS.verde, subtitulo: `${pctSafe(fase2Mun, totalMun)}% do total · ${pctSafe(fase2Mun, aderidosMun)}% dos aderidos` },
   ];
 
   document.getElementById('funilProgresso').innerHTML = etapas.map(e => {
@@ -819,7 +826,7 @@ function renderFunil(stats) {
     return `<div class="funil-etapa">
       <div class="funil-topo">
         <span class="funil-nome">${e.nome}</span>
-        <span class="funil-valor"><b>${fmtNum(e.valor)} mun.</b> · ${fmtNum(e.ubs)} UBS — ${e.subtitulo}</span>
+        <span class="funil-valor"><b>${fmtNum(e.valor)} mun.</b> — ${e.subtitulo}<br>${fmtNum(e.ubsComVenc)} UBS c/ vencedora · ${fmtNum(e.ubsSemVenc)} s/ vencedora</span>
       </div>
       <div class="funil-trilho"><div class="funil-barra" style="width:${largura}%;background:${e.cor}"></div></div>
     </div>`;
@@ -839,18 +846,20 @@ function renderRankingUf(dados) {
   }
 
   // Barras compostas pela contagem de municípios (proporção mais legível); o total de UBS
-  // correspondente aparece sempre ao lado, nunca substitui o número de municípios.
+  // correspondente aparece sempre ao lado, já separado em com/sem empresa vencedora — nunca
+  // como um total único de UBS (pedido do usuário em 2026-09-04).
   const totaisMun = dados.map(d => d.mun_nao_aderiu + d.mun_fase2_pendente + d.mun_fase2_completa);
   const maxTotalMun = Math.max(...totaisMun);
   box.innerHTML = dados.map(d => {
     const totalMun = d.mun_nao_aderiu + d.mun_fase2_pendente + d.mun_fase2_completa;
-    const totalUbs = d.ubs_nao_aderiu + d.ubs_fase2_pendente + d.ubs_fase2_completa;
+    const ubsComVenc = d.ubs_nao_aderiu_com_venc + d.ubs_fase2_pendente_com_venc + d.ubs_fase2_completa_com_venc;
+    const ubsSemVenc = d.ubs_nao_aderiu_sem_venc + d.ubs_fase2_pendente_sem_venc + d.ubs_fase2_completa_sem_venc;
     const larguraTotal = maxTotalMun > 0 ? (100 * totalMun / maxTotalMun) : 0;
     const segNao = totalMun > 0 ? (100 * d.mun_nao_aderiu / totalMun) : 0;
     const segPend = totalMun > 0 ? (100 * d.mun_fase2_pendente / totalMun) : 0;
     const segComp = totalMun > 0 ? (100 * d.mun_fase2_completa / totalMun) : 0;
     const titulo = `${d.uf}: ${fmtNum(d.mun_nao_aderiu)} não aderiu, ${fmtNum(d.mun_fase2_pendente)} Fase II pendente, `
-      + `${fmtNum(d.mun_fase2_completa)} Fase II concluída (municípios) — ${fmtNum(totalUbs)} UBS no total`;
+      + `${fmtNum(d.mun_fase2_completa)} Fase II concluída (municípios) — ${fmtNum(ubsComVenc)} UBS c/ vencedora, ${fmtNum(ubsSemVenc)} s/ vencedora`;
     return `<div class="uf-linha">
       <span class="uf-sigla">${d.uf}</span>
       <span class="uf-barra-trilho" style="width:${larguraTotal}%" title="${escapeAttr(titulo)}">
@@ -858,7 +867,10 @@ function renderRankingUf(dados) {
         <span class="uf-barra-seg" style="width:${segPend}%;background:${CORES_STATUS.amarelo}"></span>
         <span class="uf-barra-seg" style="width:${segComp}%;background:${CORES_STATUS.verde}"></span>
       </span>
-      <span class="uf-total">${fmtNum(totalMun)} mun · ${fmtNum(totalUbs)} UBS</span>
+      <span class="uf-total">
+        <div class="uf-total-mun">${fmtNum(totalMun)} mun</div>
+        <div class="uf-total-ubs">${fmtNum(ubsComVenc)} UBS c/venc · ${fmtNum(ubsSemVenc)} s/venc</div>
+      </span>
     </div>`;
   }).join('');
 }
