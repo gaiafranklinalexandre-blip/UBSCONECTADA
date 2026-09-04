@@ -175,14 +175,17 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 .periodo-filtro input[type=date]:focus { outline: 2px solid var(--blue); }
 .periodo-filtro-ate { font-size: 12px; color: var(--text-mid); }
 
-/* Linha do tempo (histórico sólido + projeção tracejada até a meta) */
-.linha-tempo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-@media (max-width: 800px) { .linha-tempo-grid { grid-template-columns: 1fr; } }
-.linha-tempo-titulo { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.linha-tempo-atual { font-weight: 500; color: var(--text-mid); font-size: 11.5px; margin-left: 4px; }
+/* Linha do tempo (histórico sólido + projeção tracejada até a meta) — municípios e UBS juntos
+   no mesmo gráfico, normalizados em % da própria meta (escalas brutas muito diferentes para
+   dividir o mesmo eixo Y em valor absoluto). */
+.linha-tempo-legenda { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; }
+.linha-tempo-legenda-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.linha-tempo-legenda-bola { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.linha-tempo-legenda-item b { color: var(--text); }
+.linha-tempo-legenda-item span { color: var(--text-mid); }
 .linha-tempo-svg { width: 100%; height: auto; overflow: visible; }
 .linha-tempo-svg text { font-family: 'Inter', sans-serif; }
-text.linha-tempo-rotulo { font-size: 13px; font-weight: 800; }
+text.linha-tempo-rotulo { font-size: 12px; font-weight: 800; }
 text.linha-tempo-eixo { font-size: 9.5px; fill: var(--text-mid); }
 text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--text-mid); }
 
@@ -367,17 +370,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
 
   <div class="dash-chart-card">
     <div class="dash-chart-title"><span>🏁 Linha do tempo — acumulado até a meta</span></div>
-    <div class="dash-chart-sub">Evolução acumulada das adesões (linha sólida) com projeção tracejada até cobrir 100% do universo elegível.</div>
-    <div class="linha-tempo-grid">
-      <div class="linha-tempo-item">
-        <div class="linha-tempo-titulo">Municípios <span id="linhaTempoMunAtual" class="linha-tempo-atual">—</span></div>
-        <svg id="linhaTempoMunSvg" viewBox="0 0 600 220" class="linha-tempo-svg"></svg>
-      </div>
-      <div class="linha-tempo-item">
-        <div class="linha-tempo-titulo">UBS <span id="linhaTempoUbsAtual" class="linha-tempo-atual">—</span></div>
-        <svg id="linhaTempoUbsSvg" viewBox="0 0 600 220" class="linha-tempo-svg"></svg>
-      </div>
-    </div>
+    <div class="dash-chart-sub">Evolução acumulada de municípios e UBS (% da meta de cada um) com projeção tracejada até 100%.</div>
+    <div class="linha-tempo-legenda" id="linhaTempoLegenda"></div>
+    <svg id="linhaTempoSvg" viewBox="0 0 640 240" class="linha-tempo-svg"></svg>
   </div>
 
   <div class="secao-titulo">✅ Adesão</div>
@@ -1016,62 +1011,75 @@ function renderRitmoAdesao(dados) {
 // ---------------------------------------------------------------------------
 // Linha do tempo: acumulado histórico (linha sólida) + projeção até a meta (linha tracejada) —
 // mesmo estilo do "Edital Lançamento" numa planilha de referência do usuário (2026-09-04).
+// Municípios e UBS ficam no mesmo gráfico (pedido do usuário: "juntar o gráfico"), mas normalizados
+// em % da própria meta — as escalas brutas (≈1.400 vs ≈3.800) são incomparáveis num único eixo Y
+// em valor absoluto, e um segundo eixo Y é sempre a alternativa errada (ver dataviz skill).
 // ---------------------------------------------------------------------------
-function renderLinhaTempo(svgId, pontos, meta, cor) {
+function renderLinhaTempoDupla(svgId, legendaId, series) {
   const svg = document.getElementById(svgId);
-  if (!pontos.length || meta <= 0) {
-    svg.innerHTML = `<text x="300" y="110" text-anchor="middle" class="linha-tempo-eixo">Sem solicitações com data para os filtros atuais.</text>`;
+  const legenda = document.getElementById(legendaId);
+  const validas = series.filter(s => s.pontos.length && s.meta > 0);
+
+  if (!validas.length) {
+    svg.innerHTML = `<text x="320" y="120" text-anchor="middle" class="linha-tempo-eixo">Sem solicitações com data para os filtros atuais.</text>`;
+    legenda.innerHTML = '';
     return;
   }
 
-  const W = 600, H = 220, padL = 8, padR = 70, padT = 26, padB = 26;
+  const W = 640, H = 240, padL = 10, padR = 66, padT = 26, padB = 26;
   const plotW = W - padL - padR, plotH = H - padT - padB;
-  const n = pontos.length;
-  const maxY = Math.max(meta, pontos[n - 1].valor);
+  const n = validas[0].pontos.length;
   const xStep = n > 1 ? plotW / n : plotW / 2;
   const xAt = i => padL + i * xStep;
-  const yAt = v => padT + plotH - (Math.min(v, maxY) / maxY) * plotH;
-
-  const coords = pontos.map((p, i) => [xAt(i), yAt(p.valor)]);
+  const yAt = pct => padT + plotH - (Math.min(pct, 100) / 100) * plotH;
   const xMeta = xAt(n);
-  const yMeta = yAt(meta);
+  const yMeta = yAt(100);
 
   let svgHtml = '';
-  [0, 0.5, 1].forEach(f => {
-    const y = (padT + plotH - f * plotH).toFixed(1);
+  [0, 50, 100].forEach(f => {
+    const y = yAt(f).toFixed(1);
     svgHtml += `<line x1="${padL}" y1="${y}" x2="${(xMeta + 10).toFixed(1)}" y2="${y}" stroke="var(--gray-border)" stroke-width="1"/>`;
+    svgHtml += `<text x="${padL}" y="${(Number(y) - 4).toFixed(1)}" class="linha-tempo-eixo">${f}%</text>`;
   });
-
-  const pathD = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c[0].toFixed(1) + ' ' + c[1].toFixed(1)).join(' ');
-  svgHtml += `<path d="${pathD}" fill="none" stroke="${cor}" stroke-width="2.5"/>`;
-
-  const [lx, ly] = coords[coords.length - 1];
-  svgHtml += `<line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${xMeta.toFixed(1)}" y2="${yMeta.toFixed(1)}" `
-    + `stroke="${cor}" stroke-width="2" stroke-dasharray="6 5" opacity=".7"/>`;
-
-  svgHtml += `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4" fill="${cor}"/>`;
-  svgHtml += `<text x="${lx.toFixed(1)}" y="${(ly - 10).toFixed(1)}" text-anchor="middle" class="linha-tempo-rotulo" fill="${cor}">${fmtNum(pontos[n - 1].valor)}</text>`;
-
-  svgHtml += `<circle cx="${xMeta.toFixed(1)}" cy="${yMeta.toFixed(1)}" r="4" fill="${cor}" fill-opacity=".5"/>`;
-  svgHtml += `<text x="${xMeta.toFixed(1)}" y="${(yMeta - 10).toFixed(1)}" text-anchor="middle" class="linha-tempo-rotulo" fill="${cor}">${fmtNum(meta)}</text>`;
   svgHtml += `<text x="${xMeta.toFixed(1)}" y="${H - 8}" text-anchor="middle" class="linha-tempo-meta-label">Meta</text>`;
 
-  const idxLabels = n <= 5 ? pontos.map((_, i) => i) : [0, Math.floor((n - 1) / 2), n - 1];
+  const idxLabels = n <= 5 ? validas[0].pontos.map((_, i) => i) : [0, Math.floor((n - 1) / 2), n - 1];
   idxLabels.forEach(i => {
-    svgHtml += `<text x="${xAt(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="linha-tempo-eixo">${pontos[i].label}</text>`;
+    svgHtml += `<text x="${xAt(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="linha-tempo-eixo">${validas[0].pontos[i].label}</text>`;
   });
 
+  validas.forEach(serie => {
+    const coords = serie.pontos.map((p, i) => [xAt(i), yAt(100 * p.valor / serie.meta)]);
+    const pathD = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c[0].toFixed(1) + ' ' + c[1].toFixed(1)).join(' ');
+    svgHtml += `<path d="${pathD}" fill="none" stroke="${serie.cor}" stroke-width="2.5"/>`;
+
+    const [lx, ly] = coords[coords.length - 1];
+    svgHtml += `<line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${xMeta.toFixed(1)}" y2="${yMeta.toFixed(1)}" `
+      + `stroke="${serie.cor}" stroke-width="2" stroke-dasharray="6 5" opacity=".7"/>`;
+
+    svgHtml += `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4" fill="${serie.cor}"/>`;
+    const pct = Math.round(100 * serie.pontos[serie.pontos.length - 1].valor / serie.meta);
+    svgHtml += `<text x="${lx.toFixed(1)}" y="${(ly - 10).toFixed(1)}" text-anchor="middle" class="linha-tempo-rotulo" fill="${serie.cor}">${pct}%</text>`;
+  });
+
+  svgHtml += `<circle cx="${xMeta.toFixed(1)}" cy="${yMeta.toFixed(1)}" r="4" fill="var(--text-mid)"/>`;
+
   svg.innerHTML = svgHtml;
+
+  legenda.innerHTML = validas.map(serie => {
+    const ultimo = serie.pontos[serie.pontos.length - 1].valor;
+    return `<div class="linha-tempo-legenda-item">
+      <span class="linha-tempo-legenda-bola" style="background:${serie.cor}"></span>
+      <b>${serie.nome}</b><span>${fmtNum(ultimo)} de ${fmtNum(serie.meta)} (${pctSafe(ultimo, serie.meta)}%)</span>
+    </div>`;
+  }).join('');
 }
 
 function renderLinhaTempoAdesao() {
   if (!ultimoStats || !ultimoSerieAdesoes) return;
 
   if (!ultimoSerieAdesoes.length) {
-    renderLinhaTempo('linhaTempoMunSvg', [], 0, CORES_STATUS.azul);
-    renderLinhaTempo('linhaTempoUbsSvg', [], 0, CORES_STATUS.roxo);
-    document.getElementById('linhaTempoMunAtual').textContent = 'sem dados';
-    document.getElementById('linhaTempoUbsAtual').textContent = 'sem dados';
+    renderLinhaTempoDupla('linhaTempoSvg', 'linhaTempoLegenda', []);
     return;
   }
 
@@ -1085,16 +1093,10 @@ function renderLinhaTempoAdesao() {
     pontosUbs.push({ label, valor: accUbs });
   });
 
-  const metaMun = ultimoStats.resumo_geral.municipios;
-  const metaUbs = ultimoStats.resumo_geral.ubs_total;
-
-  renderLinhaTempo('linhaTempoMunSvg', pontosMun, metaMun, CORES_STATUS.azul);
-  renderLinhaTempo('linhaTempoUbsSvg', pontosUbs, metaUbs, CORES_STATUS.roxo);
-
-  document.getElementById('linhaTempoMunAtual').textContent =
-    `${fmtNum(accMun)} de ${fmtNum(metaMun)} (${pctSafe(accMun, metaMun)}%)`;
-  document.getElementById('linhaTempoUbsAtual').textContent =
-    `${fmtNum(accUbs)} de ${fmtNum(metaUbs)} (${pctSafe(accUbs, metaUbs)}%)`;
+  renderLinhaTempoDupla('linhaTempoSvg', 'linhaTempoLegenda', [
+    { nome: 'Municípios', pontos: pontosMun, meta: ultimoStats.resumo_geral.municipios, cor: CORES_STATUS.azul },
+    { nome: 'UBS', pontos: pontosUbs, meta: ultimoStats.resumo_geral.ubs_total, cor: CORES_STATUS.roxo },
+  ]);
 }
 
 // ---------------------------------------------------------------------------
