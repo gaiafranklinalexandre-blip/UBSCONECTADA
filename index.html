@@ -166,6 +166,26 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 .ritmo-barra-valor { font-size: 10px; font-weight: 700; color: var(--text); }
 .ritmo-barra-label { font-size: 9.5px; color: var(--text-mid); white-space: nowrap; }
 
+/* Filtro de período (só afeta ritmo de adesão + linha do tempo) */
+.periodo-filtro { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -8px 0 16px; }
+.periodo-filtro input[type=date] {
+  border: 1px solid var(--gray-border); border-radius: var(--radius);
+  padding: 7px 12px; font-size: 12px; font-family: inherit; color: var(--text); background: var(--white);
+}
+.periodo-filtro input[type=date]:focus { outline: 2px solid var(--blue); }
+.periodo-filtro-ate { font-size: 12px; color: var(--text-mid); }
+
+/* Linha do tempo (histórico sólido + projeção tracejada até a meta) */
+.linha-tempo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 800px) { .linha-tempo-grid { grid-template-columns: 1fr; } }
+.linha-tempo-titulo { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.linha-tempo-atual { font-weight: 500; color: var(--text-mid); font-size: 11.5px; margin-left: 4px; }
+.linha-tempo-svg { width: 100%; height: auto; overflow: visible; }
+.linha-tempo-svg text { font-family: 'Inter', sans-serif; }
+text.linha-tempo-rotulo { font-size: 13px; font-weight: 800; }
+text.linha-tempo-eixo { font-size: 9.5px; fill: var(--text-mid); }
+text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--text-mid); }
+
 /* Tabela */
 .dash-ranking { width: 100%; border-collapse: collapse; margin-top: 4px; }
 .dash-ranking th { font-size: 10px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .5px; text-align: left; padding: 6px 8px; border-bottom: 2px solid var(--gray-border); }
@@ -325,6 +345,16 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
     <div class="uf-ranking" id="ufRanking"></div>
   </div>
 
+  <div class="secao-titulo">📅 Evolução da adesão</div>
+  <div class="secao-sub">Ritmo semanal e progresso acumulado das adesões, com base na data da solicitação.</div>
+  <div class="periodo-filtro">
+    <span class="filtros-label">Período:</span>
+    <input type="date" id="fDataInicio" onchange="onPeriodoChange()">
+    <span class="periodo-filtro-ate">até</span>
+    <input type="date" id="fDataFim" onchange="onPeriodoChange()">
+    <button type="button" class="filtros-limpar" id="btnLimparPeriodo" onclick="limparPeriodo()" style="display:none">✕ Limpar período</button>
+  </div>
+
   <div class="dash-chart-card">
     <div class="dash-chart-title"><span>📈 Ritmo de adesão — solicitações por semana</span></div>
     <div class="dash-chart-sub">Novas adesões (Fase I) registradas, agrupadas por semana, com base na data da solicitação.</div>
@@ -333,6 +363,21 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
       <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoUltimos30">—</div><div class="ritmo-kpi-label">Últimos 30 dias</div></div>
     </div>
     <div class="ritmo-grafico" id="ritmoGrafico"></div>
+  </div>
+
+  <div class="dash-chart-card">
+    <div class="dash-chart-title"><span>🏁 Linha do tempo — acumulado até a meta</span></div>
+    <div class="dash-chart-sub">Evolução acumulada das adesões (linha sólida) com projeção tracejada até cobrir 100% do universo elegível.</div>
+    <div class="linha-tempo-grid">
+      <div class="linha-tempo-item">
+        <div class="linha-tempo-titulo">Municípios <span id="linhaTempoMunAtual" class="linha-tempo-atual">—</span></div>
+        <svg id="linhaTempoMunSvg" viewBox="0 0 600 220" class="linha-tempo-svg"></svg>
+      </div>
+      <div class="linha-tempo-item">
+        <div class="linha-tempo-titulo">UBS <span id="linhaTempoUbsAtual" class="linha-tempo-atual">—</span></div>
+        <svg id="linhaTempoUbsSvg" viewBox="0 0 600 220" class="linha-tempo-svg"></svg>
+      </div>
+    </div>
   </div>
 
   <div class="secao-titulo">✅ Adesão</div>
@@ -448,13 +493,14 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 <script>
 const API_BASE = 'https://darkgoldenrod-pelican-495804.hostingersite.com/sync-fust.php';
 
-let filtroState = { uf: '', municipio: '' };
+let filtroState = { uf: '', municipio: '', dataInicio: '', dataFim: '' };
 let allMunicipios = []; // [{municipio, uf}]
 let detalheOffset = 0;
 const DETALHE_LIMIT = 50;
 window._detalheAcumulado = [];
 
 let ultimoStats = null;
+let ultimoSerieAdesoes = null;
 
 function normalizar(s) {
   const semAcento = (s || '').toLowerCase().normalize('NFD').split('').filter(function (c) {
@@ -520,6 +566,10 @@ function filtroParams(extra) {
   const p = {};
   if (filtroState.uf) p.uf = filtroState.uf;
   if (filtroState.municipio) p.municipio = filtroState.municipio;
+  // data_inicio/data_fim só têm efeito em ?action=serie_adesoes (ritmo de adesão + linha do
+  // tempo) — as demais rotas simplesmente ignoram parâmetros que não reconhecem.
+  if (filtroState.dataInicio) p.data_inicio = filtroState.dataInicio;
+  if (filtroState.dataFim) p.data_fim = filtroState.dataFim;
   return Object.assign(p, extra || {});
 }
 
@@ -528,7 +578,7 @@ function pctSafe(n, d) { return d > 0 ? Math.round(1000 * n / d) / 10 : 0; }
 
 // Hex fixos (não var() CSS) porque são usados em atributos de presentation SVG (stroke) e em
 // estilo inline gerado via JS — mesmo padrão já usado em COR_SITUACAO_MAPA para o mapa.
-const CORES_STATUS = { vermelho: '#E52207', amarelo: '#FFCD07', verde: '#168821', azul: '#1351B4' };
+const CORES_STATUS = { vermelho: '#E52207', amarelo: '#FFCD07', verde: '#168821', azul: '#1351B4', roxo: '#6c3fc5' };
 function fmtData(d) {
   if (!d) return '—';
   const [y, m, dia] = d.split('-');
@@ -641,11 +691,42 @@ function atualizarFiltrosAtivos() {
 }
 
 function limparFiltros() {
-  filtroState = { uf: '', municipio: '' };
+  filtroState.uf = '';
+  filtroState.municipio = '';
   document.getElementById('fUF').value = '';
   document.getElementById('fMunicipio').value = '';
   document.getElementById('fApenasComVenc').checked = false;
   onFiltroChange();
+}
+
+// Filtro de período (data da solicitação) — independente do filtro de UF/Município acima,
+// só afeta o ritmo de adesão e a linha do tempo (pedido do usuário em 2026-09-04).
+function onPeriodoChange() {
+  filtroState.dataInicio = document.getElementById('fDataInicio').value;
+  filtroState.dataFim = document.getElementById('fDataFim').value;
+  document.getElementById('btnLimparPeriodo').style.display =
+    (filtroState.dataInicio || filtroState.dataFim) ? 'inline-block' : 'none';
+  carregarRitmoEEvolucao();
+}
+
+function limparPeriodo() {
+  filtroState.dataInicio = '';
+  filtroState.dataFim = '';
+  document.getElementById('fDataInicio').value = '';
+  document.getElementById('fDataFim').value = '';
+  document.getElementById('btnLimparPeriodo').style.display = 'none';
+  carregarRitmoEEvolucao();
+}
+
+async function carregarRitmoEEvolucao() {
+  showLoading(true);
+  try {
+    await carregarRitmoAdesao();
+    renderLinhaTempoAdesao();
+  } catch (e) {
+    mostrarErroApi(e);
+  }
+  showLoading(false);
 }
 
 function onFiltroChange() {
@@ -665,6 +746,7 @@ async function carregarTudo() {
       carregarRankingUf(),
       carregarRitmoAdesao(),
     ]);
+    renderLinhaTempoAdesao(); // depende de ultimoStats + ultimoSerieAdesoes, já carregados acima
   } catch (e) {
     mostrarErroApi(e);
   }
@@ -880,6 +962,7 @@ function renderRankingUf(dados) {
 // ---------------------------------------------------------------------------
 async function carregarRitmoAdesao() {
   const dados = await fetchJson(apiUrl('serie_adesoes', filtroParams()));
+  ultimoSerieAdesoes = dados;
   renderRitmoAdesao(dados);
 }
 
@@ -928,6 +1011,90 @@ function renderRitmoAdesao(dados) {
       <div class="ritmo-barra-label">${label}</div>
     </div>`;
   }).join('');
+}
+
+// ---------------------------------------------------------------------------
+// Linha do tempo: acumulado histórico (linha sólida) + projeção até a meta (linha tracejada) —
+// mesmo estilo do "Edital Lançamento" numa planilha de referência do usuário (2026-09-04).
+// ---------------------------------------------------------------------------
+function renderLinhaTempo(svgId, pontos, meta, cor) {
+  const svg = document.getElementById(svgId);
+  if (!pontos.length || meta <= 0) {
+    svg.innerHTML = `<text x="300" y="110" text-anchor="middle" class="linha-tempo-eixo">Sem solicitações com data para os filtros atuais.</text>`;
+    return;
+  }
+
+  const W = 600, H = 220, padL = 8, padR = 70, padT = 26, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = pontos.length;
+  const maxY = Math.max(meta, pontos[n - 1].valor);
+  const xStep = n > 1 ? plotW / n : plotW / 2;
+  const xAt = i => padL + i * xStep;
+  const yAt = v => padT + plotH - (Math.min(v, maxY) / maxY) * plotH;
+
+  const coords = pontos.map((p, i) => [xAt(i), yAt(p.valor)]);
+  const xMeta = xAt(n);
+  const yMeta = yAt(meta);
+
+  let svgHtml = '';
+  [0, 0.5, 1].forEach(f => {
+    const y = (padT + plotH - f * plotH).toFixed(1);
+    svgHtml += `<line x1="${padL}" y1="${y}" x2="${(xMeta + 10).toFixed(1)}" y2="${y}" stroke="var(--gray-border)" stroke-width="1"/>`;
+  });
+
+  const pathD = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c[0].toFixed(1) + ' ' + c[1].toFixed(1)).join(' ');
+  svgHtml += `<path d="${pathD}" fill="none" stroke="${cor}" stroke-width="2.5"/>`;
+
+  const [lx, ly] = coords[coords.length - 1];
+  svgHtml += `<line x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${xMeta.toFixed(1)}" y2="${yMeta.toFixed(1)}" `
+    + `stroke="${cor}" stroke-width="2" stroke-dasharray="6 5" opacity=".7"/>`;
+
+  svgHtml += `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4" fill="${cor}"/>`;
+  svgHtml += `<text x="${lx.toFixed(1)}" y="${(ly - 10).toFixed(1)}" text-anchor="middle" class="linha-tempo-rotulo" fill="${cor}">${fmtNum(pontos[n - 1].valor)}</text>`;
+
+  svgHtml += `<circle cx="${xMeta.toFixed(1)}" cy="${yMeta.toFixed(1)}" r="4" fill="${cor}" fill-opacity=".5"/>`;
+  svgHtml += `<text x="${xMeta.toFixed(1)}" y="${(yMeta - 10).toFixed(1)}" text-anchor="middle" class="linha-tempo-rotulo" fill="${cor}">${fmtNum(meta)}</text>`;
+  svgHtml += `<text x="${xMeta.toFixed(1)}" y="${H - 8}" text-anchor="middle" class="linha-tempo-meta-label">Meta</text>`;
+
+  const idxLabels = n <= 5 ? pontos.map((_, i) => i) : [0, Math.floor((n - 1) / 2), n - 1];
+  idxLabels.forEach(i => {
+    svgHtml += `<text x="${xAt(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="linha-tempo-eixo">${pontos[i].label}</text>`;
+  });
+
+  svg.innerHTML = svgHtml;
+}
+
+function renderLinhaTempoAdesao() {
+  if (!ultimoStats || !ultimoSerieAdesoes) return;
+
+  if (!ultimoSerieAdesoes.length) {
+    renderLinhaTempo('linhaTempoMunSvg', [], 0, CORES_STATUS.azul);
+    renderLinhaTempo('linhaTempoUbsSvg', [], 0, CORES_STATUS.roxo);
+    document.getElementById('linhaTempoMunAtual').textContent = 'sem dados';
+    document.getElementById('linhaTempoUbsAtual').textContent = 'sem dados';
+    return;
+  }
+
+  let accMun = 0, accUbs = 0;
+  const pontosMun = [], pontosUbs = [];
+  ultimoSerieAdesoes.forEach(d => {
+    accMun += d.quantidade;
+    accUbs += d.ubs_total;
+    const label = new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    pontosMun.push({ label, valor: accMun });
+    pontosUbs.push({ label, valor: accUbs });
+  });
+
+  const metaMun = ultimoStats.resumo_geral.municipios;
+  const metaUbs = ultimoStats.resumo_geral.ubs_total;
+
+  renderLinhaTempo('linhaTempoMunSvg', pontosMun, metaMun, CORES_STATUS.azul);
+  renderLinhaTempo('linhaTempoUbsSvg', pontosUbs, metaUbs, CORES_STATUS.roxo);
+
+  document.getElementById('linhaTempoMunAtual').textContent =
+    `${fmtNum(accMun)} de ${fmtNum(metaMun)} (${pctSafe(accMun, metaMun)}%)`;
+  document.getElementById('linhaTempoUbsAtual').textContent =
+    `${fmtNum(accUbs)} de ${fmtNum(metaUbs)} (${pctSafe(accUbs, metaUbs)}%)`;
 }
 
 // ---------------------------------------------------------------------------
