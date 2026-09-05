@@ -27,19 +27,63 @@
   --radius:      50px;
   --card-r:      12px;
   --shadow:      0 2px 12px rgba(0,0,0,0.07);
+  /* Camada institucional (design system Gerência APS/SAPS) — ver design-system/README.md */
+  --navy:        #071D41;
+  --link-blue:   #5D87CC;
+  --brand-green: #00C700;
+  --brand-red:   #EF0000;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(--text); font-size: 14px; }
 
 /* Header */
 .header { position: sticky; top: 0; z-index: 100; background: var(--white); box-shadow: var(--shadow); }
+
+/* Barra institucional gov.br — topo do header, acima do título do painel */
+.govbr-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  max-width: 1200px; margin: 0 auto; padding: 8px 28px; border-bottom: 1px solid var(--gray-border);
+}
+.govbr-bar__brand { display: flex; align-items: center; gap: 12px; }
+.govbr-bar__logo { font-size: 17px; font-weight: 800; letter-spacing: -.4px; }
+.govbr-bar__logo-gov { color: var(--blue); }
+.govbr-bar__logo-dot { color: var(--text); }
+.govbr-bar__logo-br { color: var(--green); }
+.govbr-bar__divider { width: 1px; height: 18px; background: var(--gray-border); }
+.govbr-bar__org { font-size: 12.5px; color: var(--text); font-weight: 500; }
+.govbr-bar__icons { display: flex; gap: 10px; font-size: 13px; color: var(--blue); }
+
 .header-inner {
   max-width: 1200px; margin: 0 auto; padding: 16px 28px;
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
 }
+.breadcrumb { font-size: 11.5px; color: var(--text-mid); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.breadcrumb b { color: var(--text-mid); font-weight: 700; }
 .header-title { font-size: 19px; font-weight: 800; color: var(--blue); }
 .header-sub { font-size: 12px; color: var(--text-mid); margin-top: 2px; }
 .header-att { font-size: 11px; color: var(--text-mid); text-align: right; }
+
+/* Banner de marca — decoração institucional acima do Resumo geral */
+.brand-banner {
+  display: flex; align-items: center; gap: 24px; background: linear-gradient(90deg, #f7f7f9, #eceef1);
+  border-radius: var(--card-r); padding: 20px; margin-bottom: 12px; overflow: hidden;
+}
+.brand-banner__graphic { position: relative; width: 120px; height: 84px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: var(--white); }
+.brand-banner__lines {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(-45deg, var(--link-blue) 0 3px, transparent 3px 14px);
+  opacity: .55; -webkit-mask-image: linear-gradient(to bottom right, black, transparent 60%); mask-image: linear-gradient(to bottom right, black, transparent 60%);
+}
+.brand-banner__swoosh { position: absolute; left: 8px; bottom: 6px; }
+.brand-banner__dots { position: absolute; right: 8px; bottom: 8px; display: grid; grid-template-columns: repeat(4, 6px); gap: 4px; }
+.brand-banner__dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-red); opacity: .85; }
+.brand-banner__title { margin: 0; font-size: 23px; font-weight: 800; color: var(--blue); white-space: nowrap; }
+.brand-banner__divider { width: 2px; align-self: stretch; background: var(--brand-green); border-radius: 2px; }
+.brand-banner__desc { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text-mid); }
+@media (max-width: 700px) { .brand-banner { flex-wrap: wrap; } .brand-banner__divider { display: none; } }
+
+/* Rodapé institucional */
+.app-footer { background: var(--navy); color: #fff; text-align: center; padding: 22px 16px; font-size: 13px; margin-top: 40px; }
 
 /* Filtros */
 .filtros { background: var(--gray-bg); border-bottom: 1px solid var(--gray-border); padding: 10px 28px; }
@@ -86,8 +130,14 @@ body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(
 
 /* Body / layout */
 .dash-body { max-width: 1200px; margin: 0 auto; padding: 24px 28px 60px; }
-.secao-titulo { font-size: 15px; font-weight: 800; color: var(--text); margin: 32px 0 14px; display: flex; align-items: center; gap: 8px; }
-.secao-sub { font-size: 12px; font-weight: 500; color: var(--text-mid); margin-top: -8px; margin-bottom: 14px; }
+/* Título de seção centralizado com linha horizontal dos dois lados — padrão do design system
+   Gerência APS (ex: "Módulos", "Panorama geral do Brasil"). */
+.secao-titulo {
+  font-size: 15px; font-weight: 800; color: var(--blue); margin: 32px 0 14px;
+  display: flex; align-items: center; gap: 16px; justify-content: center; text-align: center;
+}
+.secao-titulo::before, .secao-titulo::after { content: ''; flex: 1; height: 1px; background: var(--gray-border); }
+.secao-sub { font-size: 12px; font-weight: 500; color: var(--text-mid); text-align: center; margin-top: -8px; margin-bottom: 14px; }
 
 /* KPI cards */
 .dash-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 8px; }
@@ -256,8 +306,17 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
 </div>
 
 <div class="header">
+  <div class="govbr-bar">
+    <div class="govbr-bar__brand">
+      <span class="govbr-bar__logo"><span class="govbr-bar__logo-gov">gov</span><span class="govbr-bar__logo-dot">.</span><span class="govbr-bar__logo-br">br</span></span>
+      <span class="govbr-bar__divider"></span>
+      <span class="govbr-bar__org">Ministério da Saúde</span>
+    </div>
+    <div class="govbr-bar__icons" aria-hidden="true"><span>📊</span><span>🎧</span><span>💬</span><span>◐</span></div>
+  </div>
   <div class="header-inner">
     <div>
+      <div class="breadcrumb">🏠 <span>›</span> Ministério da Saúde <span>›</span> SAPS <span>›</span> <b>UBS Conectadas</b></div>
       <div class="header-title">UBS Conectadas</div>
       <div class="header-sub">Monitoramento de adesão ao FUST — Conectividade de Unidades de Saúde</div>
     </div>
@@ -278,6 +337,22 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
 </div>
 
 <div class="dash-body" id="dashBody">
+
+  <div class="brand-banner">
+    <div class="brand-banner__graphic" aria-hidden="true">
+      <div class="brand-banner__lines"></div>
+      <svg class="brand-banner__swoosh" viewBox="0 0 100 60" width="72" height="44">
+        <path d="M8 8 Q8 50 60 50" fill="none" stroke="var(--brand-green)" stroke-width="9" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-banner__dots">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+    <h2 class="brand-banner__title">UBS Conectadas</h2>
+    <span class="brand-banner__divider" aria-hidden="true"></span>
+    <p class="brand-banner__desc">O Novo PAC Conectividade de Unidades de Saúde (Edital nº 238/2026/MCOM), financiado pelo FUST, leva internet às Unidades Básicas de Saúde do país. Este painel acompanha a adesão dos municípios elegíveis e o avanço da Fase II de confirmação técnica.</p>
+  </div>
 
   <div class="secao-titulo">📋 Resumo geral</div>
   <div class="secao-sub">Universo elegível do edital preliminar do FUST (Novo PAC Conectividade de Unidades de Saúde).</div>
@@ -482,6 +557,8 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
   </div>
 
 </div>
+
+<footer class="app-footer">Ministério da Saúde | SAPS © 2026</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
