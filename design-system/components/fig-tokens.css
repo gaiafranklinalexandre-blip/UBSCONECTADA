@@ -1,0 +1,58 @@
+/* Generated from Figma Variables. First mode = :root default.
+   FLOAT tokens are unitless — multiply by 1px in calc() where a length is needed. */
+
+:root {
+  --azul-100: rgb(40,100,174); /* @kind color */
+  --azul-20: rgba(40,100,174,0.2); /* @kind color */
+  --base-white: rgb(255,255,255); /* @kind color */
+  --blue-blue-500: rgb(59,130,246); /* @kind color */
+  --blue-blue-50: rgb(239,246,255); /* @kind color */
+  --blue-blue-900: rgb(30,58,138); /* @kind color */
+  --blueaccent: rgb(19,81,180); /* @kind color */
+  --bluegray-bluegray-200: rgb(226,232,240); /* @kind color */
+  --bluegray-bluegray-300: rgb(203,213,225); /* @kind color */
+  --bluegray-bluegray-500: rgb(100,116,139); /* @kind color */
+  --bluegray-bluegray-50: rgb(248,250,252); /* @kind color */
+  --bluegray-bluegray-800: rgb(30,41,59); /* @kind color */
+  --border-danger-tertiary: var(--red-500); /* @kind color */
+  --branco-100: rgb(255,255,255); /* @kind color */
+  --comment-border: rgb(33,33,33); /* @kind color */
+  --comment-comment: rgb(255,251,144); /* @kind color */
+  --disp: rgb(22,136,33); /* @kind color */
+  --full-rounded-corner-radius: 50;
+  --indisp: rgb(228,23,23); /* @kind color */
+  --labels-vibrant-controls-primary: rgb(64,64,64); /* @kind color */
+  --negativo: rgb(228,23,23); /* @kind color */
+  --opacity-100: 100; /* @kind other */
+  --preench: rgb(255,205,7); /* @kind color */
+  --red-500: rgb(236,34,31); /* @kind color */
+  --red-red-500: rgb(239,68,68); /* @kind color */
+  --space-200: 8;
+  --subtext: rgba(33,33,33,0.7); /* @kind color */
+  --textos-link: rgb(19,81,180); /* @kind color */
+  --ui-primary: rgb(92,90,84); /* @kind color */
+  --ui-secondary: rgba(92,90,84,0.24); /* @kind color */
+}
+
+:root[data-theme="dark"], .dark {
+  --base-white: rgb(0,0,0); /* @kind color */
+  --blue-blue-500: rgb(96,165,250); /* @kind color */
+  --blue-blue-50: rgb(30,58,138); /* @kind color */
+  --blue-blue-900: rgb(239,246,255); /* @kind color */
+  --bluegray-bluegray-200: rgb(51,65,85); /* @kind color */
+  --bluegray-bluegray-300: rgb(71,85,105); /* @kind color */
+  --bluegray-bluegray-500: rgb(148,163,184); /* @kind color */
+  --bluegray-bluegray-50: rgb(15,23,42); /* @kind color */
+  --bluegray-bluegray-800: rgb(241,245,249); /* @kind color */
+  --border-danger-tertiary: var(--red-500); /* @kind color */
+  --labels-vibrant-controls-primary: rgb(191,191,191); /* @kind color */
+  --labels-vibrant-controls-primary: rgb(191,191,191); /* @kind color */
+  --red-red-500: rgb(248,113,113); /* @kind color */
+  --subtext: rgb(251,251,251); /* @kind color */
+  --ui-primary: rgba(255,255,255,0.8); /* @kind color */
+  --ui-secondary: rgba(232,232,232,0.24); /* @kind color */
+}
+
+:root[data-theme="light"], .light {
+  --labels-vibrant-controls-primary: rgb(64,64,64); /* @kind color */
+}

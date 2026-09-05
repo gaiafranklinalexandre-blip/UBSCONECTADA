@@ -1,0 +1,18 @@
+<!-- @dsCard group="Components" viewport="700x900" name="Icon set" subtitle="~85 glyphs — currentColor SVG data" -->
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:16px;background:var(--color-surface-page);font-family:var(--font-primary)}.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:10px}.cell{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--color-text-secondary)}.cell span{font-size:8px;text-align:center;word-break:break-all}</style>
+<div id="root"></div>
+<script type="text/babel">
+const { Icon } = window.DesignSystem_88f6a8;
+const names = ["Add","AngleDoubleLeft","AngleDoubleRight","AngleLeft","AngleRight","Camera","Check","ChevronDown","CircleOff","ColumnSorting","Dollar","Down","DropdownInput","Info","More2","Notes","Right","Search","Shortcut","Square","Times","User","IconsIconAddFolder","IconsIconArrowDown","IconsIconArrowLeft","IconsIconArrowRight","IconsIconArrowUp","IconsIconAttention","IconsIconCallCenter","IconsIconChart","IconsIconClock","IconsIconClose","IconsIconDownload","IconsIconEdit","IconsIconEmail","IconsIconEye","IconsIconEyeSlash","IconsIconFile","IconsIconFilter","IconsIconFolder","IconsIconImage","IconsIconInfo","IconsIconLike","IconsIconLoading","IconsIconLocation","IconsIconLocked","IconsIconMenu","IconsIconMode","IconsIconMore","IconsIconNotification","IconsIconOpenTab","IconsIconPdf","IconsIconRead","IconsIconRefresh","IconsIconRemoveFolder","IconsIconReturn","IconsIconSave","IconsIconSearch","IconsIconSend","IconsIconSpeak","IconsIconTools","IconsIconTrash","IconsIconUnlocked","IconsIconUser","IconsIconViewFile","IconsIconZoomIn","IconsIconZoomOut"];
+function App(){
+  return (<div className="grid">{names.map(n=>(
+    <div className="cell" key={n}><Icon name={n} size={20}/><span>{n.replace("IconsIcon","")}</span></div>
+  ))}</div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>

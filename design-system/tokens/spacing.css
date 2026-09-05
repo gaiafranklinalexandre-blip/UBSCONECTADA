@@ -1,0 +1,22 @@
+/* Spacing + radius + elevation tokens. Values taken from auto-layout gaps/paddings and
+   border-radius literals observed across components (Figma "Space" variable = 8). */
+:root{
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 50%;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.1);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+  --shadow-focus: 0 0 0 3px rgba(38,112,232,0.35);
+}

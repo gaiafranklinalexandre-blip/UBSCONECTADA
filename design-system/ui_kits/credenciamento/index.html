@@ -1,0 +1,132 @@
+<!-- @dsCard group="Credenciamento" viewport="1440x900" name="Gerência APS — Credenciamento" subtitle="Home dashboard, new-request form, sign-in — click-through" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>Gerência APS — Credenciamento</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font-primary);background:var(--color-surface-page);color:var(--color-text-primary)}
+a{color:var(--color-text-link)}a:hover{color:var(--color-action-primary-hover)}
+.app-header{background:#fff;border-bottom:1px solid var(--color-border-default);padding:12px 32px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{height:32px}
+.brand span{font-family:var(--font-display);font-weight:500;font-size:14px}
+.tabs{display:flex;gap:24px;padding:0 32px;background:#fff;border-bottom:1px solid var(--color-border-default)}
+.tab{padding:14px 4px;font-size:14px;font-weight:600;color:var(--color-text-secondary);cursor:pointer;border-bottom:3px solid transparent}
+.tab.active{color:var(--color-text-link);border-color:var(--color-text-link)}
+.page{padding:28px 32px;max-width:1376px;margin:0 auto}
+h1{font-family:var(--font-display);font-size:24px;font-weight:700;margin:0 0 4px}
+.sub{color:var(--color-text-secondary);font-size:14px;margin:0 0 24px}
+.cards{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.section-title{font-size:16px;font-weight:600;margin:0 0 12px}
+table.list{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--color-border-default);border-radius:var(--radius-lg);overflow:hidden}
+table.list th{text-align:left;font-size:12px;color:var(--color-text-muted);font-weight:600;padding:10px 16px;border-bottom:1px solid var(--color-border-default)}
+table.list td{padding:12px 16px;font-size:14px;border-bottom:1px solid var(--color-border-default)}
+table.list tr:last-child td{border-bottom:none}
+.form-card{background:#fff;border:1px solid var(--color-border-default);border-radius:var(--radius-lg);padding:24px;max-width:720px}
+.form-row{display:flex;gap:16px;margin-bottom:16px}
+.form-row > div{flex:1}
+.field-label{font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;display:block}
+.steps-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.signin-wrap{min-height:640px;display:flex;align-items:center;justify-content:center;background:var(--color-surface-page)}
+</style></head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const DS = window.GerNciaAPSDesignSystem_88f6a8;
+const { Tag, Component1, ControlOption, StepIndicator, Input, Dropdown, MessageFeedback, Icon, SignIn, Button2, ButtonWeb350p } = DS;
+
+function Header(){
+  return (<div className="app-header">
+    <div className="brand"><img src="../../assets/logo-govbr.png" alt="gov.br"/><span>Ministério da Saúde · Gerência APS</span></div>
+    <div style={{display:"flex",gap:16,alignItems:"center",fontSize:13,color:"var(--color-text-secondary)"}}>
+      <Icon name="IconsIconNotification" size={18}/>
+      <Icon name="IconsIconUser" size={18}/>
+      <span>Sec. Municipal de Saúde</span>
+    </div>
+  </div>);
+}
+
+function HomeView(){
+  const rows = [
+    {estrategia:"eSF — Estratégia Saúde da Família", municipio:"Rio Branco/AC", status:"Deferido", data:"12/03/2026"},
+    {estrategia:"eAP — Equipe de Atenção Primária", municipio:"Cruzeiro do Sul/AC", status:"Em tramitação", data:"04/07/2026"},
+    {estrategia:"eSB — Saúde Bucal 40h", municipio:"Sena Madureira/AC", status:"Indeferido", data:"28/06/2026"},
+    {estrategia:"CEO — Centro de Especialidades Odontológicas", municipio:"Feijó/AC", status:"Em tramitação", data:"15/08/2026"},
+  ];
+  const statusType = s => s === "Deferido" ? "status" : s === "Indeferido" ? "status" : "status";
+  return (<div className="page">
+    <h1>Visão de Credenciamento</h1>
+    <p className="sub">Acompanhe o saldo e as solicitações de credenciamento por estratégia.</p>
+    <div className="cards">
+      <Component1 card="full" saldo="disponivel" text2="Teto eSF" text3="42"/>
+      <Component1 card="full" saldo="indisp" text2="Teto eAP" text3="8"/>
+      <Component1 card="full" saldo="preench" text2="Teto eSB" text3="15"/>
+    </div>
+    <p className="section-title">Solicitações recentes</p>
+    <table className="list">
+      <thead><tr><th>Estratégia</th><th>Município</th><th>Status</th><th>Data</th><th></th></tr></thead>
+      <tbody>
+        {rows.map((r,i)=>(<tr key={i}>
+          <td>{r.estrategia}</td><td>{r.municipio}</td>
+          <td><Tag type="status" text1={r.status}/></td>
+          <td>{r.data}</td>
+          <td><Icon name="IconsIconViewFile" size={16}/></td>
+        </tr>))}
+      </tbody>
+    </table>
+  </div>);
+}
+
+function FormView(){
+  return (<div className="page">
+    <h1>Nova solicitação — Credenciamento eSF</h1>
+    <p className="sub">Informe os dados da equipe para iniciar a tramitação.</p>
+    <div className="steps-row">
+      <StepIndicator type="number" state="complete" text1="1"/>
+      <StepIndicator type="number" state="actived" text1="2"/>
+      <StepIndicator type="number" state="default" text1="3"/>
+    </div>
+    <div className="form-card">
+      <div className="form-row">
+        <div><span className="field-label">Município</span><Dropdown state="default"/></div>
+        <div><span className="field-label">CNES</span><Input state="default" text1="0000000"/></div>
+      </div>
+      <div className="form-row">
+        <div><span className="field-label">Equipe</span><Input state="default" text1="eSF 01"/></div>
+        <div><span className="field-label">INE</span><Input state="error" text1="Obrigatório"/></div>
+      </div>
+      <MessageFeedback state="warning" text1="O quantitativo informado excede o saldo disponível para este município."/>
+      <div style={{display:"flex",gap:12,marginTop:20,justifyContent:"flex-end"}}>
+        <Button2 emphasis="tertiary" text1="Cancelar"/>
+        <Button2 emphasis="primary" text1="Enviar solicitação"/>
+      </div>
+    </div>
+  </div>);
+}
+
+function SignInView(){
+  return (<div className="signin-wrap"><SignIn type="internal" density="high" text1="Entrar com gov.br"/></div>);
+}
+
+function App(){
+  const [tab, setTab] = React.useState("home");
+  return (<div>
+    <Header/>
+    <div className="tabs">
+      {[["home","Visão de Credenciamento"],["form","Nova Solicitação"],["signin","Acesso"]].map(([k,l])=>(
+        <div key={k} className={"tab"+(tab===k?" active":"")} onClick={()=>setTab(k)}>{l}</div>
+      ))}
+    </div>
+    {tab==="home" && <HomeView/>}
+    {tab==="form" && <FormView/>}
+    {tab==="signin" && <SignInView/>}
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>
