@@ -1,0 +1,11 @@
+.ds-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 14px; border-radius: var(--ds-radius);
+  font-family: var(--ds-font); font-size: var(--ds-fs-xs); font-weight: 700;
+  white-space: nowrap;
+}
+.ds-status-pill--verde { background: var(--ds-green-light); color: var(--ds-green); }
+.ds-status-pill--amarelo { background: var(--ds-yellow-light); color: var(--ds-yellow-text); }
+.ds-status-pill--vermelho { background: var(--ds-red-light); color: var(--ds-red); }
+.ds-status-pill--azul { background: var(--ds-blue-light); color: var(--ds-blue); }
+.ds-status-pill--neutro { background: var(--ds-pill-neutro-bg); color: var(--ds-pill-neutro-text); }

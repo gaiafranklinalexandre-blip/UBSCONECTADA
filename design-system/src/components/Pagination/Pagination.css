@@ -1,0 +1,16 @@
+.ds-pagination {
+  display: flex; align-items: center; justify-content: center; gap: var(--ds-space-4);
+  flex-wrap: wrap; font-family: var(--ds-font); font-size: var(--ds-fs-sm); color: var(--ds-text-mid);
+}
+.ds-pagination__controls { display: flex; align-items: center; gap: 4px; }
+.ds-pagination__nav, .ds-pagination__page {
+  border: 1px solid transparent; background: none; font-family: inherit; font-size: var(--ds-fs-sm);
+  color: var(--ds-text-mid); cursor: pointer; padding: 4px 9px; border-radius: 6px; min-width: 28px;
+}
+.ds-pagination__nav:disabled { opacity: .35; cursor: not-allowed; }
+.ds-pagination__nav:hover:not(:disabled), .ds-pagination__page:hover { background: var(--ds-gray-bg); }
+.ds-pagination__page--active { background: var(--ds-blue-light); color: var(--ds-blue); font-weight: 700; }
+.ds-pagination__size {
+  border: 1px solid var(--ds-gray-border); border-radius: var(--ds-radius); padding: 6px 12px;
+  font-family: inherit; font-size: var(--ds-fs-sm); color: var(--ds-text); background: var(--ds-white);
+}

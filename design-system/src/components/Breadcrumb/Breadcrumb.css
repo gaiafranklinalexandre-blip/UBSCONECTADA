@@ -1,0 +1,10 @@
+.ds-breadcrumb {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+  font-family: var(--ds-font); font-size: var(--ds-fs-sm); color: var(--ds-text-mid);
+}
+.ds-breadcrumb__home { color: var(--ds-blue); }
+.ds-breadcrumb__segment { display: inline-flex; align-items: center; gap: 4px; }
+.ds-breadcrumb__sep { color: var(--ds-text-mid); opacity: .7; }
+.ds-breadcrumb__link { color: var(--ds-blue); text-decoration: none; }
+.ds-breadcrumb__link:hover { text-decoration: underline; }
+.ds-breadcrumb__current { color: var(--ds-text-mid); }

@@ -1,0 +1,14 @@
+.ds-info-card {
+  position: relative; display: flex; flex-direction: column; gap: var(--ds-space-2);
+  background: var(--ds-white); border: 1px solid var(--ds-gray-border); border-radius: var(--ds-card-radius);
+  padding: var(--ds-space-4); font-family: var(--ds-font); overflow: hidden;
+}
+.ds-info-card[role='button'] { cursor: pointer; }
+.ds-info-card__corner {
+  position: absolute; top: -20px; right: -20px; width: 70px; height: 70px;
+  background: linear-gradient(135deg, var(--ds-blue-light), transparent 70%);
+  transform: rotate(0deg);
+}
+.ds-info-card__icon { font-size: 20px; color: var(--ds-blue); }
+.ds-info-card__title { font-size: var(--ds-fs-base); font-weight: 700; color: var(--ds-text); }
+.ds-info-card__desc { font-size: var(--ds-fs-xs); color: var(--ds-text-mid); line-height: 1.5; }

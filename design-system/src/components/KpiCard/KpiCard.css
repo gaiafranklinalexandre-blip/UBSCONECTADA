@@ -1,0 +1,31 @@
+.ds-kpi-card {
+  position: relative; overflow: hidden; font-family: var(--ds-font);
+  background: var(--ds-white); border-radius: var(--ds-card-radius); box-shadow: var(--ds-shadow);
+  padding: var(--ds-space-5) var(--ds-space-5); border-top: 4px solid var(--ds-blue);
+}
+.ds-kpi-card--verde { border-top-color: var(--ds-green); }
+.ds-kpi-card--amarelo { border-top-color: var(--ds-yellow); }
+.ds-kpi-card--vermelho { border-top-color: var(--ds-red); }
+.ds-kpi-card--roxo { border-top-color: var(--ds-roxo); }
+
+.ds-kpi-card__label {
+  font-size: var(--ds-fs-xs); font-weight: 700; color: var(--ds-text-mid);
+  text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px;
+}
+.ds-kpi-card__value { font-size: 32px; font-weight: 800; color: var(--ds-blue); line-height: 1; }
+.ds-kpi-card--verde .ds-kpi-card__value { color: var(--ds-green); }
+.ds-kpi-card--amarelo .ds-kpi-card__value { color: var(--ds-yellow-text); }
+.ds-kpi-card--vermelho .ds-kpi-card__value { color: var(--ds-red); }
+.ds-kpi-card--roxo .ds-kpi-card__value { color: var(--ds-roxo); }
+
+.ds-kpi-card__pct {
+  display: inline-block; font-size: var(--ds-fs-sm); font-weight: 700;
+  background: var(--ds-blue-light); color: var(--ds-blue); border-radius: 10px; padding: 2px 8px; margin-top: 6px;
+}
+.ds-kpi-card--verde .ds-kpi-card__pct { background: var(--ds-green-light); color: var(--ds-green); }
+.ds-kpi-card--amarelo .ds-kpi-card__pct { background: var(--ds-yellow-light); color: var(--ds-yellow-text); }
+.ds-kpi-card--vermelho .ds-kpi-card__pct { background: var(--ds-red-light); color: var(--ds-red); }
+.ds-kpi-card--roxo .ds-kpi-card__pct { background: var(--ds-roxo-light); color: var(--ds-roxo); }
+
+.ds-kpi-card__sub { font-size: var(--ds-fs-xs); color: var(--ds-text-mid); margin-top: var(--ds-space-2); line-height: 1.5; }
+.ds-kpi-card__icon { position: absolute; right: 14px; bottom: 8px; font-size: 42px; opacity: .07; pointer-events: none; line-height: 1; }

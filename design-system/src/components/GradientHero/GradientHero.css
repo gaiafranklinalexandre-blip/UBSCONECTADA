@@ -1,0 +1,15 @@
+.ds-gradient-hero {
+  position: relative; overflow: hidden; border-radius: var(--ds-card-radius);
+  background: linear-gradient(135deg, #0F76C5 0%, #1E7EC7 40%, #4FA3E0 100%);
+  padding: var(--ds-space-6) var(--ds-space-5) var(--ds-space-5);
+  font-family: var(--ds-font);
+}
+.ds-gradient-hero__pattern { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ds-gradient-hero__content { position: relative; z-index: 1; }
+.ds-gradient-hero__eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--ds-fs-sm); font-weight: 600; color: #fff; opacity: .9; margin-bottom: var(--ds-space-2);
+}
+.ds-gradient-hero__eyebrow-badge { font-size: 9px; }
+.ds-gradient-hero__title { margin: 0; font-size: 24px; font-weight: 800; color: #fff; }
+.ds-gradient-hero__body { margin-top: var(--ds-space-4); }

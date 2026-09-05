@@ -112,6 +112,18 @@ As coordenadas (lat/lon por IBGE de 6 dígitos) vêm de `municipios_latlon.json`
 
 ---
 
+## Design system (`design-system/`)
+
+Pacote React separado (`ubs-conectadas-ds`), criado em 2026-09-04 a pedido do usuário para (1) ser usado como referência de design em painéis/sites/apresentações futuros e (2) ser publicado no claude.ai/design via a skill `/design-sync`. **Não afeta o painel** (`index.html` continua vanilla JS, por regra do projeto) — é um artefato à parte, só para alimentar o Claude Design ou servir de referência visual a portar manualmente.
+
+- **Escopo**: não é só o UBS Conectadas — o usuário pediu para abranger toda a família **Gerência APS** (Ministério da Saúde/SAPS, padrão gov.br), mostrando capturas de tela de um zip (`Gerencia APS.zip`, na raiz, não versionado) com os sistemas "Gerência APS" (Gestão Federal/Municipal — credenciamento, habilitação, adesão, financiamento, calendário CNES) e "SIAPS". O link do Figma de origem (`Gerencia-APS---DESATUALIZADO`) não pôde ser acessado por este agente (exige login; `WebFetch` só via o app-shell vazio) — os tokens institucionais (navy `#071D41`, verde/vermelho decorativos do banner, azul dos links) foram amostrados por **pixel** das capturas com um script PowerShell (`System.Drawing.Bitmap.GetPixel`), não estimados visualmente.
+- **25 componentes** em `src/components/`, exportados de `src/index.ts`: layout institucional (`GovBrHeader`, `Breadcrumb`, `PageHeader`, `Footer`, `SectionTitle`, `BrandBanner`, `GradientHero`), conteúdo (`StatusPill`, `ModuleCard`, `AccordionRow`, `InfoCard`, `KpiCard`, `ChartCard`), dados (`DataTable`, `Pagination`, `NotificationList`), controles (`Button`, `Tabs`, `Select`, `SearchableSelect`, `SearchInput`) e os 4 gráficos do UBS Conectadas portados para React (`DonutChart`, `ProgressFunnel`, `RankingBar`, `TimelineChart` — mesma lógica SVG/matemática do `index.html`, sem lib de gráficos). Detalhes e o que ficou de fora (ex: `CalendarTable`, não construída) estão em `design-system/README.md`.
+- **Build**: TypeScript + tsup (`npm run build` dentro de `design-system/`) → `dist/index.js` + `dist/index.css` + `dist/index.d.ts`. Build limpo na 1ª tentativa; validado com `smoke-test.mjs` (renderiza todos os 25 componentes via `react-dom/server`, sem navegador — este ambiente não tem Chromium/`chromium-cli` disponível).
+- **Node**: instalado em `C:\Program Files\nodejs` mas fora do PATH desta sessão — comandos precisam de `$env:PATH = "C:\Program Files\nodejs;" + $env:PATH` antes (PowerShell) ou caminho completo.
+- **Próximo passo em aberto**: rodar a skill `/design-sync` a partir de `design-system/` para efetivamente publicar em claude.ai/design (shape "package", sem Storybook) — ainda não executado nesta sessão. Também pendente: decidir se `design-system/` e `.claude/skills/frontend-design/` (instalada na mesma sessão) entram no commit do Git — nenhum dos dois está coberto pela autorização de push automático (só `index.html`/`sync_fust.py`/`CLAUDE.md`).
+
+---
+
 ## Regras principais de desenvolvimento
 
 - Não usar frameworks JS — vanilla JS, mesmo padrão do CNES Combo.

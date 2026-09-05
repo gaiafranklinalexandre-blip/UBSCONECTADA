@@ -1,0 +1,34 @@
+.ds-brand-banner {
+  display: flex; align-items: center; gap: var(--ds-space-5);
+  background: linear-gradient(90deg, #f7f7f9, #eceef1);
+  border-radius: var(--ds-card-radius);
+  padding: var(--ds-space-5);
+  font-family: var(--ds-font);
+  overflow: hidden;
+}
+.ds-brand-banner__graphic {
+  position: relative; width: 130px; height: 90px; flex-shrink: 0;
+  border-radius: 8px; overflow: hidden; background: #fff;
+}
+.ds-brand-banner__lines {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(-45deg, var(--ds-link-blue) 0 3px, transparent 3px 14px);
+  opacity: .55;
+  -webkit-mask-image: linear-gradient(to bottom right, black, transparent 60%);
+          mask-image: linear-gradient(to bottom right, black, transparent 60%);
+}
+.ds-brand-banner__swoosh { position: absolute; left: 10px; bottom: 8px; }
+.ds-brand-banner__dots {
+  position: absolute; right: 8px; bottom: 8px;
+  display: grid; grid-template-columns: repeat(4, 6px); gap: 4px;
+}
+.ds-brand-banner__dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--ds-brand-red); opacity: .85; }
+
+.ds-brand-banner__title { margin: 0; font-size: 26px; font-weight: 800; color: var(--ds-blue); white-space: nowrap; }
+.ds-brand-banner__divider { width: 2px; align-self: stretch; background: var(--ds-brand-green); border-radius: 2px; }
+.ds-brand-banner__desc { margin: 0; font-size: var(--ds-fs-sm); line-height: 1.6; color: var(--ds-text-mid); }
+
+@media (max-width: 700px) {
+  .ds-brand-banner { flex-wrap: wrap; }
+  .ds-brand-banner__divider { display: none; }
+}

@@ -1,0 +1,8 @@
+.ds-tabs { display: flex; font-family: var(--ds-font); border-radius: 8px; overflow: hidden; border: 1px solid var(--ds-gray-border); }
+.ds-tabs__item {
+  flex: 1; border: none; background: var(--ds-gray-bg); color: var(--ds-text-mid);
+  font-family: inherit; font-size: var(--ds-fs-base); font-weight: 700; padding: var(--ds-space-3) var(--ds-space-4);
+  cursor: pointer; border-right: 1px solid var(--ds-gray-border);
+}
+.ds-tabs__item:last-child { border-right: none; }
+.ds-tabs__item--active { background: var(--ds-blue); color: var(--ds-white); }

@@ -1,0 +1,61 @@
+/*
+ * Tokens do design system "Gerência APS" (Ministério da Saúde / SAPS, padrão gov.br).
+ * Núcleo (azul/verde/amarelo/vermelho) extraído literalmente do :root de index.html
+ * (painel UBS Conectadas) — não redesenhado. Tokens adicionais (navy, verde-swoosh,
+ * vermelho-pontilhado, azul-link) amostrados por pixel das capturas de referência em
+ * "Gerencia APS.zip" (Gerencia APS-Resp.png, Visão-Adesão.png) em 2026-09-04, já que o
+ * link do Figma de origem não pôde ser acessado (exige login, WebFetch só vê o app shell).
+ */
+:root {
+  /* Núcleo — igual ao painel UBS Conectadas */
+  --ds-blue: #1351B4;
+  --ds-blue-hover: #2670E8;
+  --ds-blue-light: #D4E3FF;
+  --ds-blue-bg: #EEF2FB;
+  --ds-green: #168821;
+  --ds-green-light: #E3F5E1;
+  --ds-red: #E52207;
+  --ds-red-light: #FFE8E5;
+  --ds-yellow: #FFCD07;
+  --ds-yellow-light: #FFF5C2;
+  --ds-yellow-text: #7a5f00;
+  --ds-roxo: #6c3fc5;
+  --ds-roxo-light: #ede7f6;
+  --ds-gray-bg: #F0F0F5;
+  --ds-gray-border: #E0E0E0;
+  --ds-text: #1C1C1C;
+  --ds-text-mid: #666;
+  --ds-white: #fff;
+  --ds-radius: 50px;
+  --ds-card-radius: 12px;
+  --ds-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --ds-font: 'Inter', sans-serif;
+
+  /* Institucional (Gerência APS) — amostrado das capturas gov.br */
+  --ds-navy: #071D41;              /* rodapé institucional */
+  --ds-navy-text: #ffffff;
+  --ds-link-blue: #5D87CC;         /* links utilitários do header */
+  --ds-brand-green: #00C700;       /* "swoosh" decorativo do banner de marca */
+  --ds-brand-red: #EF0000;         /* pontilhado decorativo do banner de marca */
+  --ds-header-height: 96px;
+
+  /* Farol institucional (pills de status — mais tons que o farol do UBS Conectadas) */
+  --ds-pill-neutro-bg: #F0F0F5;
+  --ds-pill-neutro-text: #444;
+
+  /* Espaçamento e tipografia — escala consistente para os novos componentes */
+  --ds-space-1: 4px;
+  --ds-space-2: 8px;
+  --ds-space-3: 12px;
+  --ds-space-4: 16px;
+  --ds-space-5: 24px;
+  --ds-space-6: 32px;
+  --ds-space-7: 48px;
+
+  --ds-fs-xs: 11px;
+  --ds-fs-sm: 12.5px;
+  --ds-fs-base: 14px;
+  --ds-fs-md: 16px;
+  --ds-fs-lg: 19px;
+  --ds-fs-xl: 28px;
+}

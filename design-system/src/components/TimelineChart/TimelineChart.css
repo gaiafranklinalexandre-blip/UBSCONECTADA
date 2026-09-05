@@ -1,0 +1,12 @@
+.ds-timeline-chart { font-family: var(--ds-font); }
+.ds-timeline-chart__empty { font-family: var(--ds-font); color: var(--ds-text-mid); font-size: var(--ds-fs-sm); padding: var(--ds-space-5); text-align: center; }
+.ds-timeline-chart__legend { display: flex; gap: var(--ds-space-5); flex-wrap: wrap; margin-bottom: var(--ds-space-3); }
+.ds-timeline-chart__legend-item { display: flex; align-items: center; gap: 8px; font-size: var(--ds-fs-sm); }
+.ds-timeline-chart__legend-item b { color: var(--ds-text); }
+.ds-timeline-chart__legend-item span { color: var(--ds-text-mid); }
+.ds-timeline-chart__legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.ds-timeline-chart__svg { width: 100%; height: auto; overflow: visible; }
+.ds-timeline-chart__svg text { font-family: var(--ds-font); }
+.ds-timeline-chart__value { font-size: 12px; font-weight: 800; }
+.ds-timeline-chart__axis { font-size: 9.5px; fill: var(--ds-text-mid); }
+.ds-timeline-chart__meta-label { font-size: 10px; font-weight: 700; fill: var(--ds-text-mid); }

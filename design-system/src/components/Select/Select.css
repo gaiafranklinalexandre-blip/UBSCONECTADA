@@ -1,0 +1,11 @@
+.ds-select { display: flex; flex-direction: column; gap: 4px; font-family: var(--ds-font); }
+.ds-select__label { font-size: var(--ds-fs-xs); font-weight: 700; color: var(--ds-text-mid); }
+.ds-select__input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%231351B4' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  border: 1px solid var(--ds-gray-border); border-radius: var(--ds-radius);
+  padding: 8px 28px 8px 14px; font-size: var(--ds-fs-sm); font-family: inherit; color: var(--ds-text);
+  background-color: var(--ds-white); cursor: pointer; min-width: 140px;
+}
+.ds-select__input:focus { outline: 2px solid var(--ds-blue); }

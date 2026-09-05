@@ -1,0 +1,9 @@
+.ds-page-header { font-family: var(--ds-font); padding: var(--ds-space-5); background: var(--ds-white); }
+.ds-page-header__title-row { display: flex; align-items: flex-start; gap: var(--ds-space-3); }
+.ds-page-header__menu {
+  border: none; background: none; font-size: 22px; line-height: 1; color: var(--ds-text);
+  cursor: pointer; padding: 2px 0;
+}
+.ds-page-header__title { margin: 0; font-size: var(--ds-fs-xl); font-weight: 800; color: var(--ds-text); }
+.ds-page-header__subtitle { font-size: var(--ds-fs-base); color: var(--ds-text-mid); margin-top: 2px; }
+.ds-page-header__breadcrumb { margin-top: var(--ds-space-4); }

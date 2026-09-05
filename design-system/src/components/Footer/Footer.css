@@ -1,0 +1,5 @@
+.ds-footer {
+  width: 100%; background: var(--ds-navy); padding: var(--ds-space-5) var(--ds-space-4);
+  display: flex; align-items: center; justify-content: center; font-family: var(--ds-font);
+}
+.ds-footer__text { color: var(--ds-navy-text); font-size: var(--ds-fs-base); }

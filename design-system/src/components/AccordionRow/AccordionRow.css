@@ -1,0 +1,19 @@
+.ds-accordion-row {
+  border: 1px solid var(--ds-gray-border); border-radius: 8px; overflow: hidden;
+  font-family: var(--ds-font); background: var(--ds-white);
+}
+.ds-accordion-row__header {
+  width: 100%; display: flex; align-items: center; gap: var(--ds-space-3);
+  border: none; background: none; cursor: pointer; text-align: left;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  font-family: inherit;
+}
+.ds-accordion-row__bar { width: 4px; align-self: stretch; border-radius: 2px; flex-shrink: 0; }
+.ds-accordion-row--verde .ds-accordion-row__bar { background: var(--ds-green); }
+.ds-accordion-row--amarelo .ds-accordion-row__bar { background: var(--ds-yellow); }
+.ds-accordion-row--vermelho .ds-accordion-row__bar { background: var(--ds-red); }
+.ds-accordion-row__label { flex: 1; font-size: var(--ds-fs-base); color: var(--ds-text); font-weight: 500; }
+.ds-accordion-row__right { display: flex; align-items: center; gap: var(--ds-space-3); }
+.ds-accordion-row__chevron { color: var(--ds-blue); transition: transform .15s ease; }
+.ds-accordion-row__chevron--open { transform: rotate(180deg); }
+.ds-accordion-row__panel { padding: 0 var(--ds-space-4) var(--ds-space-4) var(--ds-space-5); }

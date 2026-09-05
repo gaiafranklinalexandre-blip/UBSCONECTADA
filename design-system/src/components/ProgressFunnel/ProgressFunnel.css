@@ -1,0 +1,7 @@
+.ds-progress-funnel { display: flex; flex-direction: column; gap: var(--ds-space-4); font-family: var(--ds-font); }
+.ds-progress-funnel__top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--ds-space-2); flex-wrap: wrap; margin-bottom: 5px; }
+.ds-progress-funnel__label { font-size: var(--ds-fs-sm); font-weight: 700; color: var(--ds-text); }
+.ds-progress-funnel__value { font-size: var(--ds-fs-xs); color: var(--ds-text-mid); text-align: right; }
+.ds-progress-funnel__value b { color: var(--ds-text); font-size: 13.5px; }
+.ds-progress-funnel__track { background: var(--ds-gray-bg); border-radius: 8px; height: 24px; overflow: hidden; }
+.ds-progress-funnel__bar { height: 100%; border-radius: 8px; min-width: 4px; transition: width .4s ease; }

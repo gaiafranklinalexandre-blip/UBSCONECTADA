@@ -1,0 +1,11 @@
+.ds-search-input {
+  position: relative; display: inline-flex; align-items: center; font-family: var(--ds-font);
+}
+.ds-search-input__field {
+  border: 1px solid var(--ds-gray-border); border-radius: var(--ds-radius);
+  padding: 10px 40px 10px 16px; font-size: var(--ds-fs-sm); font-family: inherit;
+  color: var(--ds-text); background: var(--ds-gray-bg); width: 100%; font-style: italic;
+}
+.ds-search-input__field::placeholder { color: var(--ds-text-mid); font-style: italic; }
+.ds-search-input__field:focus { outline: 2px solid var(--ds-blue); font-style: normal; }
+.ds-search-input__icon { position: absolute; right: 14px; color: var(--ds-blue); pointer-events: none; }

@@ -1,0 +1,10 @@
+.ds-chart-card {
+  background: var(--ds-white); border-radius: var(--ds-card-radius); box-shadow: var(--ds-shadow);
+  padding: var(--ds-space-5); font-family: var(--ds-font);
+}
+.ds-chart-card__header {
+  font-size: var(--ds-fs-base); font-weight: 700; color: var(--ds-text);
+  margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); flex-wrap: wrap;
+}
+.ds-chart-card__subtitle { font-size: var(--ds-fs-xs); color: var(--ds-text-mid); margin-bottom: var(--ds-space-4); }
+.ds-chart-card__body { margin-top: 4px; }

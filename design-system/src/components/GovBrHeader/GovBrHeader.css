@@ -1,0 +1,28 @@
+.ds-govbr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-3) var(--ds-space-5);
+  background: var(--ds-white);
+  border-bottom: 1px solid var(--ds-gray-border);
+  font-family: var(--ds-font);
+  flex-wrap: wrap;
+}
+.ds-govbr-header__brand { display: flex; align-items: center; gap: var(--ds-space-3); }
+.ds-govbr-header__logo { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+.ds-govbr-header__logo-gov { color: #1451B4; }
+.ds-govbr-header__logo-dot { color: var(--ds-text); }
+.ds-govbr-header__logo-br { color: #168821; }
+.ds-govbr-header__divider { width: 1px; height: 22px; background: var(--ds-gray-border); }
+.ds-govbr-header__org { font-size: var(--ds-fs-base); color: var(--ds-text); font-weight: 500; }
+
+.ds-govbr-header__actions { display: flex; align-items: center; gap: var(--ds-space-4); flex-wrap: wrap; }
+.ds-govbr-header__links { display: flex; gap: var(--ds-space-4); }
+.ds-govbr-header__link { font-size: var(--ds-fs-sm); color: var(--ds-link-blue); text-decoration: none; }
+.ds-govbr-header__link:hover { text-decoration: underline; }
+.ds-govbr-header__icons { display: flex; gap: var(--ds-space-3); font-size: 15px; color: var(--ds-blue); }
+.ds-govbr-header__login, .ds-govbr-header__user {
+  border: none; background: none; font-family: inherit; font-size: var(--ds-fs-sm);
+  font-weight: 700; color: var(--ds-blue); cursor: pointer; padding: 4px 6px;
+}

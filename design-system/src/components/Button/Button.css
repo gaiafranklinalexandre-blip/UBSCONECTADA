@@ -1,0 +1,17 @@
+.ds-button {
+  font-family: var(--ds-font); font-size: var(--ds-fs-sm); font-weight: 700;
+  border-radius: var(--ds-radius); padding: 9px 20px; cursor: pointer; border: 1px solid transparent;
+}
+.ds-button:disabled { opacity: .5; cursor: not-allowed; }
+
+.ds-button--solido { background: var(--ds-blue); color: var(--ds-white); }
+.ds-button--solido:hover:not(:disabled) { background: var(--ds-blue-hover); }
+
+.ds-button--contorno { background: var(--ds-white); border-color: var(--ds-blue); color: var(--ds-blue); }
+.ds-button--contorno:hover:not(:disabled) { background: var(--ds-blue-bg); }
+
+.ds-button--alerta { background: var(--ds-red); color: var(--ds-white); }
+.ds-button--alerta:hover:not(:disabled) { background: #c41d06; }
+
+.ds-button--texto { background: none; border-color: transparent; color: var(--ds-blue); padding: 6px 8px; }
+.ds-button--texto:hover:not(:disabled) { background: var(--ds-blue-bg); border-radius: 6px; }
