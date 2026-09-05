@@ -185,11 +185,17 @@ body { font-family: var(--font-body); background: var(--page-bg); color: var(--t
 .ritmo-kpi { background: var(--blue-bg); border-radius: var(--card-r); padding: 10px 20px; border: 1px solid var(--gray-border); }
 .ritmo-kpi-valor { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--blue); line-height: 1; }
 .ritmo-kpi-label { font-size: 12px; font-weight: 600; color: var(--text-mid); margin-top: 4px; }
+.ritmo-kpi.delta-pos .ritmo-kpi-valor { color: var(--green); }
+.ritmo-kpi.delta-neg .ritmo-kpi-valor { color: var(--red); }
 .ritmo-grafico { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 10px; overflow-x: auto; }
 .ritmo-barra-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 0 34px; min-width: 34px; height: 100%; justify-content: flex-end; }
 .ritmo-barra-trilho { width: 100%; height: 100%; display: flex; align-items: flex-end; }
 .ritmo-barra { width: 100%; background: var(--blue); border-radius: 4px 4px 0 0; min-height: 3px; transition: height .4s ease; }
 .ritmo-barra-valor { font-size: 10px; font-weight: 700; color: var(--text); }
+.ritmo-delta { font-size: 10px; font-weight: 700; min-height: 12px; }
+.ritmo-delta.pos { color: var(--green); }
+.ritmo-delta.neg { color: var(--red); }
+.ritmo-delta.neutro { color: var(--text-mid); }
 .ritmo-barra-label { font-size: 9.5px; color: var(--text-mid); white-space: nowrap; }
 
 /* Filtro de período (só afeta ritmo de adesão + linha do tempo) */
@@ -308,6 +314,7 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
   <nav class="top-menu" aria-label="Navegação do painel">
     <div class="top-menu-inner">
       <a href="#resumo">Resumo geral</a>
+      <a href="#prioridades">Prioridades</a>
       <a href="#visao-estrategica">Visão estratégica</a>
       <a href="#evolucao">Evolução da adesão</a>
       <a href="#adesao">Adesão</a>
@@ -356,6 +363,23 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
       <div class="dash-kpi-label">UBS sem empresa vencedora</div>
       <div class="dash-kpi-valor" id="kpiUbsSemVenc">—</div>
       <div class="dash-kpi-sub">ainda sem empresa manifestando interesse</div>
+    </div>
+  </div>
+
+  <div class="secao-titulo" id="prioridades">Prioridades de monitoramento</div>
+  <div class="secao-sub">Foco operacional: fazer os municípios com UBS já contempladas aderirem e reduzir o estoque pendente de Fase II.</div>
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi amarelo">
+      <div class="dash-kpi-label">UBS c/ vencedora em municípios sem adesão</div>
+      <div class="dash-kpi-valor" id="kpiPrioridadeUbsVencSemAdesao">—</div>
+      <div class="dash-kpi-pct" id="kpiPrioridadeUbsVencSemAdesaoPct">—%</div>
+      <div class="dash-kpi-sub" id="kpiPrioridadeUbsVencSemAdesaoSub">Converter esses municípios para adesão.</div>
+    </div>
+    <div class="dash-kpi amarelo">
+      <div class="dash-kpi-label">Municípios com Fase II pendente</div>
+      <div class="dash-kpi-valor" id="kpiPrioridadeFase2Pendente">—</div>
+      <div class="dash-kpi-pct" id="kpiPrioridadeFase2PendentePct">—% dos aderidos</div>
+      <div class="dash-kpi-sub" id="kpiPrioridadeFase2PendenteSub">Avançar responsável técnico e confirmação de instalação.</div>
     </div>
   </div>
 
@@ -410,6 +434,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     <div class="ritmo-kpis">
       <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoUltimos15">—</div><div class="ritmo-kpi-label">Últimos 15 dias</div></div>
       <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoUltimos30">—</div><div class="ritmo-kpi-label">Últimos 30 dias</div></div>
+      <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoPeriodoAtual">—</div><div class="ritmo-kpi-label">Período selecionado</div></div>
+      <div class="ritmo-kpi"><div class="ritmo-kpi-valor" id="ritmoPeriodoAnterior">—</div><div class="ritmo-kpi-label">Período anterior</div></div>
+      <div class="ritmo-kpi" id="ritmoVariacaoCard"><div class="ritmo-kpi-valor" id="ritmoVariacaoPeriodo">—</div><div class="ritmo-kpi-label">Variação</div></div>
     </div>
     <div class="ritmo-grafico" id="ritmoGrafico"></div>
   </div>
@@ -777,6 +804,23 @@ function maiorData(a, b) {
   return a > b ? a : b;
 }
 
+function diferencaDias(inicio, fim) {
+  const a = new Date(inicio + 'T00:00:00');
+  const b = new Date(fim + 'T00:00:00');
+  return Math.max(1, Math.round((b - a) / 86400000) + 1);
+}
+
+function somaAdesoesPeriodo(dados, inicio, fim) {
+  return (dados || []).reduce((acc, d) => {
+    if (!d.data || d.data < inicio || d.data > fim) return acc;
+    return acc + Number(d.quantidade || 0);
+  }, 0);
+}
+
+function fmtDelta(n) {
+  return n > 0 ? `+${fmtNum(n)}` : fmtNum(n);
+}
+
 function configurarSliderPeriodo(dados) {
   const slider = document.getElementById('periodoSlider');
   const label = document.getElementById('periodoSliderLabel');
@@ -902,6 +946,10 @@ async function carregarStats() {
   document.getElementById('kpiFaltamUbsComVencPct').textContent = f.ubs_com_venc_pct + '%';
   document.getElementById('kpiFaltamUbsComVencSub').textContent =
     `Nesses municípios ainda sem adesão há ${fmtNum(f.ubs_sem_venc)} UBS sem empresa vencedora.`;
+  document.getElementById('kpiPrioridadeUbsVencSemAdesao').textContent = fmtNum(f.ubs_com_venc);
+  document.getElementById('kpiPrioridadeUbsVencSemAdesaoPct').textContent = f.ubs_com_venc_pct + '% das UBS sem adesão';
+  document.getElementById('kpiPrioridadeUbsVencSemAdesaoSub').textContent =
+    `${fmtNum(f.municipios)} município(s) ainda precisam aderir; prioridade nas UBS que já têm empresa vencedora.`;
 
   const f2 = stats.fase2;
   document.getElementById('kpiFase2Completa').textContent = fmtNum(f2.completa_municipios);
@@ -912,6 +960,10 @@ async function carregarStats() {
   document.getElementById('kpiFase2PendentePct').textContent = f2.pendente_pct + '% dos aderidos';
   document.getElementById('kpiFase2PendenteSub').textContent =
     `Correspondem a ${fmtNum(f2.pendente_ubs_com_venc)} UBS com empresa vencedora.`;
+  document.getElementById('kpiPrioridadeFase2Pendente').textContent = fmtNum(f2.pendente_municipios);
+  document.getElementById('kpiPrioridadeFase2PendentePct').textContent = f2.pendente_pct + '% dos aderidos';
+  document.getElementById('kpiPrioridadeFase2PendenteSub').textContent =
+    `${fmtNum(f2.pendente_ubs_com_venc)} UBS c/ vencedora dependem desse avanço na Fase II.`;
 
   const obsBox = document.getElementById('obsBox');
   if (stats.obs.municipios_aderidos_nao_elegiveis > 0) {
@@ -1082,6 +1134,22 @@ function renderRitmoAdesao(dados) {
   document.getElementById('ritmoUltimos15').textContent = fmtNum(n15);
   document.getElementById('ritmoUltimos30').textContent = fmtNum(n30);
 
+  const datasBase = datasSerieBase();
+  const inicioPeriodo = filtroState.dataInicio || (datasBase[0] || '');
+  const fimPeriodo = filtroState.dataFim || (datasBase[datasBase.length - 1] || '');
+  const atualPeriodo = inicioPeriodo && fimPeriodo ? somaAdesoesPeriodo(periodoBaseSerie || dados, inicioPeriodo, fimPeriodo) : 0;
+  const diasPeriodo = inicioPeriodo && fimPeriodo ? diferencaDias(inicioPeriodo, fimPeriodo) : 0;
+  const fimAnterior = inicioPeriodo ? addDias(inicioPeriodo, -1) : '';
+  const inicioAnterior = fimAnterior ? addDias(fimAnterior, -(diasPeriodo - 1)) : '';
+  const anteriorPeriodo = inicioAnterior && fimAnterior ? somaAdesoesPeriodo(periodoBaseSerie || [], inicioAnterior, fimAnterior) : 0;
+  const variacaoPeriodo = atualPeriodo - anteriorPeriodo;
+  const variacaoCard = document.getElementById('ritmoVariacaoCard');
+  document.getElementById('ritmoPeriodoAtual').textContent = fmtNum(atualPeriodo);
+  document.getElementById('ritmoPeriodoAnterior').textContent = fmtNum(anteriorPeriodo);
+  document.getElementById('ritmoVariacaoPeriodo').textContent = fmtDelta(variacaoPeriodo);
+  variacaoCard.classList.toggle('delta-pos', variacaoPeriodo > 0);
+  variacaoCard.classList.toggle('delta-neg', variacaoPeriodo < 0);
+
   const chaves = Object.keys(semanas).sort();
   const box = document.getElementById('ritmoGrafico');
   if (!chaves.length) {
@@ -1090,13 +1158,17 @@ function renderRitmoAdesao(dados) {
   }
 
   const max = Math.max(1, ...chaves.map(k => semanas[k]));
-  box.innerHTML = chaves.map(k => {
+  box.innerHTML = chaves.map((k, i) => {
     const qtd = semanas[k];
+    const anterior = i > 0 ? semanas[chaves[i - 1]] : 0;
+    const delta = qtd - anterior;
+    const deltaClasse = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'neutro';
     const altura = Math.max(3, Math.round(100 * qtd / max));
     const dt = new Date(k + 'T00:00:00');
     const label = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    return `<div class="ritmo-barra-col" title="Semana de ${label}: ${fmtNum(qtd)} adesão(ões)">
+    return `<div class="ritmo-barra-col" title="Semana de ${label}: ${fmtNum(qtd)} adesão(ões), ${fmtDelta(delta)} vs semana anterior">
       <div class="ritmo-barra-valor">${fmtNum(qtd)}</div>
+      <div class="ritmo-delta ${deltaClasse}">${i === 0 ? 'base' : fmtDelta(delta)}</div>
       <div class="ritmo-barra-trilho"><div class="ritmo-barra" style="height:${altura}%"></div></div>
       <div class="ritmo-barra-label">${label}</div>
     </div>`;
