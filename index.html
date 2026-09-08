@@ -34,27 +34,36 @@
 html { scroll-behavior: smooth; }
 body { font-family: var(--font-body); background: var(--page-bg); color: var(--text); font-size: 14px; }
 
-/* Header */
-.header { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--gray-border); }
-.header-inner {
-  max-width: 1200px; margin: 0 auto; padding: 12px 28px;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+/* App shell — sidebar de navegação persistente + área principal (cara de sistema, não de
+   relatório de rolagem única). Cada .view-section é uma "tela" independente; só uma fica
+   visível por vez (.active), trocada por irParaView() no JS. */
+.app-shell { display: flex; align-items: stretch; min-height: 100vh; }
+.app-sidebar {
+  width: 232px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--gray-border);
+  position: sticky; top: 0; align-self: flex-start; height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column;
 }
-.header-brand { display: flex; align-items: center; gap: 12px; }
-.header-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: 0; }
-.header-sub { font-size: 12px; font-weight: 500; color: var(--text-mid); margin-top: 2px; }
-.header-att { font-size: 11px; color: var(--text-mid); text-align: right; }
-.top-menu { background: var(--page-bg); border-top: 1px solid var(--blue-hover); border-bottom: 1px solid var(--blue-hover); }
-.top-menu-inner { max-width: 1200px; min-height: 56px; margin: 0 auto; padding: 0 28px; display: flex; gap: 20px; align-items: center; overflow-x: auto; }
-.top-menu a {
-  color: var(--text); text-decoration: none; font-family: var(--font-display); font-size: 12px; font-weight: 500;
-  letter-spacing: .03em; line-height: 18px; padding: 5px 0; border-bottom: 2px solid transparent; white-space: nowrap;
+.app-sidebar-brand { padding: 18px 20px 15px; border-bottom: 1px solid var(--gray-border); }
+.app-sidebar-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text); }
+.app-sidebar-sub { font-size: 11px; color: var(--text-mid); margin-top: 3px; line-height: 1.4; }
+.app-nav { display: flex; flex-direction: column; padding: 8px; gap: 1px; flex: 1; }
+.app-nav a {
+  display: block; padding: 9px 12px; border-radius: var(--radius); font-size: 12.5px; font-weight: 500;
+  color: var(--text-mid); text-decoration: none; border-left: 3px solid transparent;
 }
-.top-menu a:hover, .top-menu a:focus { color: var(--blue); border-bottom-color: var(--blue); outline: none; }
+.app-nav a:hover { background: var(--gray-bg); color: var(--text); }
+.app-nav a.active { background: var(--blue-bg); color: var(--blue); font-weight: 700; border-left-color: var(--blue); }
+
+.app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.app-topbar { position: sticky; top: 0; z-index: 100; background: var(--white); }
+.app-topbar-att { padding: 6px 28px 0; font-size: 11px; color: var(--text-mid); text-align: right; }
+
+.view-section { display: none; }
+.view-section.active { display: block; }
 
 /* Filtros */
 .filtros { background: var(--white); border-bottom: 1px solid var(--gray-border); padding: 10px 28px; }
-.filtros-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filtros-inner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .filtros-label { font-size: 12px; font-weight: 600; color: var(--text-mid); white-space: nowrap; }
 .filtros select, .filtros input {
   border: 1px solid var(--gray-border); border-radius: var(--radius);
@@ -96,13 +105,12 @@ body { font-family: var(--font-body); background: var(--page-bg); color: var(--t
 .sug-vazio { padding: 12px 14px; font-size: 12.5px; color: var(--text-mid); cursor: default; }
 
 /* Body / layout */
-.dash-body { max-width: 1200px; margin: 0 auto; padding: 24px 28px 60px; }
+.dash-body { max-width: 1400px; padding: 24px 28px 60px; }
 .secao-titulo {
-  font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text);
-  margin: 36px 0 6px; position: relative; display: inline-block; scroll-margin-top: 174px;
+  font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text);
+  margin: 0 0 4px;
 }
-.secao-titulo::after { content: ''; display: block; width: 44px; height: 2px; background: var(--blue); margin-top: 8px; border-radius: 2px; }
-.secao-sub { font-size: 14px; font-weight: 400; color: var(--text-mid); margin-top: 10px; margin-bottom: 16px; max-width: 720px; line-height: 1.5; }
+.secao-sub { font-size: 13.5px; font-weight: 400; color: var(--text-mid); margin-bottom: 20px; max-width: 720px; line-height: 1.5; }
 
 .dash-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 8px; }
 .dash-kpi {
@@ -111,11 +119,6 @@ body { font-family: var(--font-body); background: var(--page-bg); color: var(--t
   transition: border-color .18s ease, box-shadow .18s ease;
 }
 .dash-kpi:hover { border-color: var(--color-border-strong); box-shadow: var(--shadow-sm); }
-.dash-kpi-grid .dash-kpi:nth-child(1) { animation-delay: .02s; }
-.dash-kpi-grid .dash-kpi:nth-child(2) { animation-delay: .08s; }
-.dash-kpi-grid .dash-kpi:nth-child(3) { animation-delay: .14s; }
-.dash-kpi-grid .dash-kpi:nth-child(4) { animation-delay: .2s; }
-@keyframes kpiEntrada { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .dash-kpi.verde   { border-left-color: var(--green); }
 .dash-kpi.amarelo { border-left-color: var(--yellow); }
 .dash-kpi.vermelho{ border-left-color: var(--red); }
@@ -289,6 +292,19 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
 .spinner { width: 40px; height: 40px; border: 4px solid var(--blue-light); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+@media (max-width: 900px) {
+  .app-shell { flex-direction: column; }
+  .app-sidebar {
+    width: 100%; height: auto; position: sticky; top: 0; z-index: 110;
+    flex-direction: row; align-items: center; overflow-x: auto; overflow-y: visible;
+  }
+  .app-sidebar-brand { border-bottom: none; border-right: 1px solid var(--gray-border); padding: 10px 16px; flex-shrink: 0; }
+  .app-nav { flex-direction: row; padding: 6px 8px; overflow-x: auto; }
+  .app-nav a { white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; border-radius: var(--radius) var(--radius) 0 0; }
+  .app-nav a.active { border-left: none; border-bottom-color: var(--blue); }
+  .app-topbar { position: static; }
+}
+
 @media (max-width: 700px) {
   .dash-kpi-valor { font-size: 26px; }
 }
@@ -301,46 +317,46 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
   <div style="font-weight:600;color:var(--blue)">Carregando dados...</div>
 </div>
 
-<div class="header">
-  <div class="header-inner">
-    <div class="header-brand">
-      <div>
-      <div class="header-title">UBS Conectadas</div>
-      <div class="header-sub">Monitoramento de adesão ao FUST — Conectividade de Unidades de Saúde</div>
-      </div>
+<div class="app-shell">
+  <aside class="app-sidebar">
+    <div class="app-sidebar-brand">
+      <div class="app-sidebar-title">UBS Conectadas</div>
+      <div class="app-sidebar-sub">Monitoramento de adesão ao FUST — Conectividade de Unidades de Saúde</div>
     </div>
-    <div class="header-att" id="headerAtt"></div>
-  </div>
-  <nav class="top-menu" aria-label="Navegação do painel">
-    <div class="top-menu-inner">
-      <a href="#resumo">Resumo geral</a>
-      <a href="#prioridades">Prioridades</a>
-      <a href="#visao-estrategica">Visão estratégica</a>
-      <a href="#evolucao">Evolução da adesão</a>
-      <a href="#adesao">Adesão</a>
-      <a href="#faltam-aderir">Faltam aderir</a>
-      <a href="#fase-ii">Fase II</a>
-      <a href="#contatos">Contatos</a>
-      <a href="#detalhamento">Detalhamento</a>
-      <a href="#mapa">Mapa de adesão</a>
-    </div>
-  </nav>
-  <div class="filtros" id="filtros">
-    <div class="filtros-inner">
-      <span class="filtros-label">Filtrar:</span>
-      <select id="fUF" onchange="onUfChange()"><option value="">Todas as UFs</option></select>
-      <div class="busca-wrap">
-        <input type="text" id="fMunicipio" placeholder="Todos os municípios" autocomplete="off"
-          oninput="onMunicipioInput()" onfocus="onMunicipioInput()" onkeydown="onMunicipioKey(event)">
-        <div class="sugestoes" id="municipioSugestoes" style="display:none"></div>
-      </div>
-      <button class="filtros-limpar" id="btnLimpar" onclick="limparFiltros()">× Limpar filtros</button>
-    </div>
-  </div>
-</div>
+    <nav class="app-nav" aria-label="Navegação do painel">
+      <a href="#resumo" data-view="resumo" onclick="return irParaView('resumo')">Resumo geral</a>
+      <a href="#prioridades" data-view="prioridades" onclick="return irParaView('prioridades')">Prioridades</a>
+      <a href="#visao-estrategica" data-view="visao-estrategica" onclick="return irParaView('visao-estrategica')">Visão estratégica</a>
+      <a href="#evolucao" data-view="evolucao" onclick="return irParaView('evolucao')">Evolução da adesão</a>
+      <a href="#adesao" data-view="adesao" onclick="return irParaView('adesao')">Adesão</a>
+      <a href="#faltam-aderir" data-view="faltam-aderir" onclick="return irParaView('faltam-aderir')">Faltam aderir</a>
+      <a href="#fase-ii" data-view="fase-ii" onclick="return irParaView('fase-ii')">Fase II</a>
+      <a href="#contatos" data-view="contatos" onclick="return irParaView('contatos')">Contatos</a>
+      <a href="#detalhamento" data-view="detalhamento" onclick="return irParaView('detalhamento')">Detalhamento</a>
+      <a href="#mapa" data-view="mapa" onclick="return irParaView('mapa')">Mapa de adesão</a>
+    </nav>
+  </aside>
 
-<div class="dash-body" id="dashBody">
+  <div class="app-main">
+    <div class="app-topbar">
+      <div class="filtros" id="filtros">
+        <div class="filtros-inner">
+          <span class="filtros-label">Filtrar:</span>
+          <select id="fUF" onchange="onUfChange()"><option value="">Todas as UFs</option></select>
+          <div class="busca-wrap">
+            <input type="text" id="fMunicipio" placeholder="Todos os municípios" autocomplete="off"
+              oninput="onMunicipioInput()" onfocus="onMunicipioInput()" onkeydown="onMunicipioKey(event)">
+            <div class="sugestoes" id="municipioSugestoes" style="display:none"></div>
+          </div>
+          <button class="filtros-limpar" id="btnLimpar" onclick="limparFiltros()">× Limpar filtros</button>
+        </div>
+      </div>
+      <div class="app-topbar-att" id="headerAtt"></div>
+    </div>
 
+    <div class="dash-body" id="dashBody">
+
+<section class="view-section" id="view-resumo" data-view="resumo">
   <div class="secao-titulo" id="resumo">Resumo geral</div>
   <div class="secao-sub">Universo elegível do edital preliminar do FUST (Novo PAC Conectividade de Unidades de Saúde).</div>
   <div class="dash-kpi-grid">
@@ -366,6 +382,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-prioridades" data-view="prioridades">
   <div class="secao-titulo" id="prioridades">Prioridades de monitoramento</div>
   <div class="secao-sub">Foco operacional: fazer os municípios com UBS já contempladas aderirem e reduzir o estoque pendente de Fase II.</div>
   <div class="dash-kpi-grid">
@@ -383,6 +402,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-visao-estrategica" data-view="visao-estrategica">
   <div class="secao-titulo" id="visao-estrategica">Visão estratégica</div>
   <div class="secao-sub">Como o universo de municípios elegíveis se distribui entre não aderiu, aderiu com Fase II pendente e Fase II concluída — sempre com o número de UBS correspondente.</div>
   <div class="estrategico-grid">
@@ -408,6 +430,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-evolucao" data-view="evolucao">
   <div class="secao-titulo" id="evolucao">Evolução da adesão</div>
   <div class="secao-sub">Ritmo semanal e progresso acumulado das adesões, com base na data da solicitação.</div>
   <div class="periodo-filtro">
@@ -448,6 +473,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     <svg id="linhaTempoSvg" viewBox="0 0 640 240" class="linha-tempo-svg"></svg>
   </div>
 
+</section>
+
+<section class="view-section" id="view-adesao" data-view="adesao">
   <div class="secao-titulo" id="adesao">Adesão</div>
   <div class="secao-sub">Municípios elegíveis que já manifestaram adesão (Fase I e/ou Fase II).</div>
   <div class="dash-kpi-grid">
@@ -471,6 +499,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-faltam-aderir" data-view="faltam-aderir">
   <div class="secao-titulo" id="faltam-aderir">Faltam aderir</div>
   <div class="secao-sub">Municípios elegíveis que ainda não manifestaram nenhuma adesão.</div>
   <div class="dash-kpi-grid">
@@ -487,6 +518,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-fase-ii" data-view="fase-ii">
   <div class="secao-titulo" id="fase-ii">Fase II — confirmação técnica</div>
   <div class="secao-sub">Dos municípios já aderidos: quais concluíram a Fase II (responsável técnico + dados de instalação confirmados) e quais ainda faltam.</div>
   <div class="dash-kpi-grid">
@@ -508,6 +542,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     <span id="obsTexto"></span>
   </div>
 
+</section>
+
+<section class="view-section" id="view-contatos" data-view="contatos">
   <div class="secao-titulo" id="contatos">Contatos prioritários</div>
   <div class="secao-sub">Municípios que já aderiram (Fase I) mas ainda não concluíram a Fase II — quem precisa ser contatado para finalizar a adesão.</div>
   <div class="dash-chart-card">
@@ -517,6 +554,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-detalhamento" data-view="detalhamento">
   <div class="secao-titulo" id="detalhamento">Detalhamento por UBS</div>
   <div class="secao-sub">Lista de estabelecimentos do resultado provisório, com a situação de adesão do respectivo município.</div>
   <div class="dash-chart-card">
@@ -535,6 +575,9 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
     </div>
   </div>
 
+</section>
+
+<section class="view-section" id="view-mapa" data-view="mapa">
   <div class="secao-titulo" id="mapa">Mapa de adesão</div>
   <div class="secao-sub">Um ponto por município elegível, colorido pela situação de adesão. Respeita os filtros de UF/município acima aplicados.</div>
   <div class="dash-chart-card">
@@ -545,7 +588,10 @@ text.linha-tempo-meta-label { font-size: 10px; font-weight: 700; fill: var(--tex
       <span class="mapa-legenda-item"><span class="mapa-legenda-bola" style="background:var(--green)"></span>Fase II concluída</span>
     </div>
   </div>
+</section>
 
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
@@ -1438,6 +1484,7 @@ async function carregarMapa() {
     pontos.push(coord);
   });
 
+  ultimoMapaPontos = pontos;
   if (pontos.length) {
     mapaLeaflet.fitBounds(pontos, { padding: [20, 20], maxZoom: 9 });
   } else {
@@ -1445,8 +1492,43 @@ async function carregarMapa() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Navegação entre telas (sidebar) — todas as telas carregam os dados de uma vez em
+// carregarTudo(); irParaView() só mostra/esconde .view-section, sem refazer chamadas à API.
+// ---------------------------------------------------------------------------
+const VIEWS = ['resumo', 'prioridades', 'visao-estrategica', 'evolucao', 'adesao', 'faltam-aderir', 'fase-ii', 'contatos', 'detalhamento', 'mapa'];
+let ultimoMapaPontos = [];
+
+function irParaView(id) {
+  if (VIEWS.indexOf(id) === -1) id = VIEWS[0];
+  VIEWS.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.toggle('active', v === id);
+  });
+  document.querySelectorAll('.app-nav a').forEach(a => {
+    a.classList.toggle('active', a.dataset.view === id);
+  });
+  history.replaceState(null, '', '#' + id);
+  window.scrollTo(0, 0);
+  // Leaflet calcula o tamanho do mapa no momento em que é inicializado; como a tela "mapa"
+  // começa escondida (display:none), o contêiner tem 0x0 até o usuário navegar até ela.
+  if (id === 'mapa' && mapaLeaflet) {
+    setTimeout(() => {
+      mapaLeaflet.invalidateSize();
+      if (ultimoMapaPontos.length) mapaLeaflet.fitBounds(ultimoMapaPontos, { padding: [20, 20], maxZoom: 9 });
+    }, 0);
+  }
+  return false;
+}
+
+function initView() {
+  irParaView((location.hash || '').replace('#', ''));
+}
+window.addEventListener('hashchange', initView);
+
 initMapa();
 init();
+initView();
 </script>
 </body>
 </html>
