@@ -11,7 +11,13 @@ except ImportError:
 # Configurações
 PASTA = os.path.dirname(__file__)
 CAMINHO_UBS = os.path.join(PASTA, 'RESULTADO_PROVISORIO_DADOS.xlsx')
-CAMINHO_SOLICITACOES = os.path.join(PASTA, 'SOLICITACOES.xlsx')
+CAMINHO_SOLICITACOES_ATUALIZADA = os.path.join(PASTA, 'solicitacoes_adesao.xlsx')
+CAMINHO_SOLICITACOES_LEGADO = os.path.join(PASTA, 'SOLICITACOES.xlsx')
+CAMINHO_SOLICITACOES = (
+    CAMINHO_SOLICITACOES_ATUALIZADA
+    if os.path.exists(CAMINHO_SOLICITACOES_ATUALIZADA)
+    else CAMINHO_SOLICITACOES_LEGADO
+)
 API_URL = 'https://darkgoldenrod-pelican-495804.hostingersite.com/sync-fust.php'
 API_KEY = 'painel_fust_2026_key'
 
